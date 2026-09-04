@@ -1,0 +1,16 @@
+{
+  "name": "AI Scheme Matcher for Marginalized Entrepreneurs",
+  "short_name": "SchemeMatch AI",
+  "description": "AI-Driven government scheme and financial aid matching for marginalized entrepreneurs",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e3a8a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

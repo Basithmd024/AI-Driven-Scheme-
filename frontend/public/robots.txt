@@ -1,0 +1,3 @@
+# Robots.txt for AI Scheme Matching Platform
+User-agent: *
+Allow: /
