@@ -2,57 +2,79 @@
 import React, { useState } from "react";
 import { SchemeMatchResult } from "../lib/api";
 
-export const SchemeCard: React.FC<{ match: SchemeMatchResult; index: number }> = ({ match, index }) => {
-  const { scheme, match_score, eligibility_status, ai_reasoning, key_benefits, required_documents, channel_guidelines } = match;
-  const [expanded, setExpanded] = useState(false);
+interface SchemeCardProps {
+  match: SchemeMatchResult;
+  index: number;
+}
 
-  // Circular SVG ring calculation (radius = 28, perimeter ~ 175.9)
+export const SchemeCard: React.FC<SchemeCardProps> = ({ match, index }) => {
+  const [expanded, setExpanded] = useState(false);
+  const { scheme, match_score, eligibility_status, ai_reasoning, key_benefits, required_documents, channel_guidelines } = match;
+
+  const isEligible = eligibility_status === "Highly Eligible" || eligibility_status === "Eligible";
+  const isConditional = eligibility_status === "Conditionally Eligible";
+  const isDisqualified = eligibility_status === "Disqualified";
+
+  const statusColor = isEligible
+    ? "var(--status-active)"
+    : isConditional
+    ? "var(--status-warning)"
+    : "var(--status-danger)";
+
+  const statusChipClass = isEligible
+    ? "chip-emerald"
+    : isConditional
+    ? "chip-amber"
+    : "chip-rose";
+
   const radius = 28;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (match_score / 100) * circumference;
-
-  const scoreColor = match_score >= 80 ? "var(--status-active)" : match_score >= 60 ? "var(--status-info)" : "var(--status-warning)";
-  const isDisqualified = eligibility_status === "Income Exceeded";
 
   return (
     <div
       className="glass-panel scheme-card-motion"
       style={{
-        padding: "1.6rem",
-        marginBottom: "1.25rem",
-        animationDelay: `${index * 70}ms`,
-        borderLeft: `5px solid ${isDisqualified ? "var(--status-danger)" : scoreColor}`,
-        position: "relative",
-        overflow: "hidden",
+        padding: "1.4rem",
+        marginBottom: "1.2rem",
+        animationDelay: `${index * 60}ms`,
+        borderLeft: `4px solid ${statusColor}`,
+        width: "100%",
+        maxWidth: "100%",
+        boxSizing: "border-box"
       }}
     >
-      <div style={{ position: "relative", zIndex: 1 }}>
-        {/* Header Row */}
+      <div>
+        {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", flexWrap: "wrap" }}>
-              <span className="chip chip-cyan" style={{ fontSize: "0.7rem" }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+              <span className="chip chip-purple" style={{ fontSize: "0.68rem" }}>
                 {scheme.category}
               </span>
               <span style={{ fontSize: "0.74rem", color: "var(--text-muted)", fontWeight: "600" }}>
-                CODE: {scheme.id}
+                {scheme.ministry_or_org}
               </span>
             </div>
+
             <h3 style={{
-              fontSize: "1.25rem",
+              fontSize: "1.2rem",
               fontWeight: "800",
               color: "var(--text-primary)",
-              margin: "0.45rem 0 0.2rem 0",
-              letterSpacing: "-0.01em"
+              margin: "0.4rem 0 0.15rem 0",
+              lineHeight: "1.3"
             }}>
               {scheme.title}
             </h3>
-            <div style={{ fontSize: "0.76rem", color: "var(--text-muted)" }}>
-              Target: {scheme.target_demographics?.join(", ") || scheme.category} • Org: {scheme.ministry_or_org}
-            </div>
+
+            {scheme.title_hi && (
+              <div style={{ fontSize: "0.84rem", color: "var(--text-muted)", fontWeight: "500" }}>
+                {scheme.title_hi}
+              </div>
+            )}
           </div>
 
-          {/* SVG Circular Score Dial */}
+          {/* Circular Fit Score */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
             <div className="score-ring-container">
               <svg className="score-ring-svg" viewBox="0 0 68 68">
@@ -63,18 +85,18 @@ export const SchemeCard: React.FC<{ match: SchemeMatchResult; index: number }> =
                   r={radius}
                   className="score-ring-fill"
                   style={{
-                    stroke: scoreColor,
+                    stroke: statusColor,
                     strokeDasharray: circumference,
                     strokeDashoffset: strokeDashoffset,
                   }}
                 />
               </svg>
-              <div className="score-ring-text" style={{ color: scoreColor }}>
+              <div className="score-ring-text" style={{ color: statusColor }}>
                 {match_score}%
               </div>
             </div>
             <span
-              className={`chip ${isDisqualified ? "chip-rose" : match_score >= 80 ? "chip-emerald" : "chip-cyan"}`}
+              className={`chip ${statusChipClass}`}
               style={{ fontSize: "0.68rem", marginTop: "0.35rem" }}
             >
               {isDisqualified ? "Exceeded" : eligibility_status}
@@ -91,21 +113,21 @@ export const SchemeCard: React.FC<{ match: SchemeMatchResult; index: number }> =
           {scheme.description}
         </p>
 
-        {/* 4 Key Concessional Metric Tiles */}
+        {/* 4 Key Concessional Metric Tiles with Responsive Grid */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "0.75rem",
+          gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+          gap: "0.65rem",
           marginBottom: "1.1rem"
         }}>
           <div style={{
             background: "var(--bg-surface)",
-            padding: "0.85rem 0.6rem",
+            padding: "0.75rem 0.5rem",
             borderRadius: "10px",
             textAlign: "center",
             border: "1px solid var(--border-subtle)"
           }}>
-            <div style={{ fontSize: "1.35rem", fontWeight: "900", color: "var(--status-active)" }}>
+            <div style={{ fontSize: "1.3rem", fontWeight: "900", color: "var(--status-active)" }}>
               {scheme.concessional_interest_rate}%
             </div>
             <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", marginTop: "2px" }}>
@@ -115,12 +137,12 @@ export const SchemeCard: React.FC<{ match: SchemeMatchResult; index: number }> =
 
           <div style={{
             background: "var(--bg-surface)",
-            padding: "0.85rem 0.6rem",
+            padding: "0.75rem 0.5rem",
             borderRadius: "10px",
             textAlign: "center",
             border: "1px solid var(--border-subtle)"
           }}>
-            <div style={{ fontSize: "1.35rem", fontWeight: "900", color: "var(--brand-accent)" }}>
+            <div style={{ fontSize: "1.3rem", fontWeight: "900", color: "var(--brand-accent)" }}>
               ₹{(scheme.max_project_cost / 100000).toFixed(1)}L
             </div>
             <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", marginTop: "2px" }}>
@@ -130,12 +152,12 @@ export const SchemeCard: React.FC<{ match: SchemeMatchResult; index: number }> =
 
           <div style={{
             background: "var(--bg-surface)",
-            padding: "0.85rem 0.6rem",
+            padding: "0.75rem 0.5rem",
             borderRadius: "10px",
             textAlign: "center",
             border: "1px solid var(--border-subtle)"
           }}>
-            <div style={{ fontSize: "1.35rem", fontWeight: "900", color: "var(--status-warning)" }}>
+            <div style={{ fontSize: "1.3rem", fontWeight: "900", color: "var(--status-warning)" }}>
               {scheme.max_moratorium_months}m
             </div>
             <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", marginTop: "2px" }}>
@@ -145,12 +167,12 @@ export const SchemeCard: React.FC<{ match: SchemeMatchResult; index: number }> =
 
           <div style={{
             background: "var(--bg-surface)",
-            padding: "0.85rem 0.6rem",
+            padding: "0.75rem 0.5rem",
             borderRadius: "10px",
             textAlign: "center",
             border: "1px solid var(--border-subtle)"
           }}>
-            <div style={{ fontSize: "1.35rem", fontWeight: "900", color: "var(--status-purple)" }}>
+            <div style={{ fontSize: "1.3rem", fontWeight: "900", color: "var(--status-purple)" }}>
               {scheme.channel_finance_coverage}%
             </div>
             <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", marginTop: "2px" }}>
@@ -173,7 +195,7 @@ export const SchemeCard: React.FC<{ match: SchemeMatchResult; index: number }> =
           <strong>Assessment:</strong> {ai_reasoning}
         </div>
 
-        {/* Action Toggle Button */}
+        {/* Action Toggle Button & Verified Links */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
           <button
             onClick={() => setExpanded(!expanded)}
@@ -181,40 +203,44 @@ export const SchemeCard: React.FC<{ match: SchemeMatchResult; index: number }> =
               background: "var(--bg-surface)",
               border: "1px solid var(--border-subtle)",
               color: "var(--text-primary)",
-              padding: "0.45rem 1rem",
+              padding: "0.55rem 1rem",
               borderRadius: "6px",
               fontSize: "0.8rem",
               fontWeight: "700",
               cursor: "pointer",
-              fontFamily: "inherit"
+              fontFamily: "inherit",
+              minHeight: "44px"
             }}
           >
             {expanded ? "Hide Routing Details" : "View Routing & Documents"}
           </button>
 
-          <div style={{ display: "flex", gap: "0.6rem" }}>
+          {/* Item 7: Verified External Links */}
+          <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
             <a
               href="https://nsfdc.nic.in/scheme"
               target="_blank"
               rel="noopener noreferrer"
               className="chip chip-cyan"
-              style={{ padding: "0.4rem 0.8rem", textDecoration: "none", fontSize: "0.76rem" }}
+              style={{ padding: "0.45rem 0.85rem", textDecoration: "none", fontSize: "0.76rem", minHeight: "36px" }}
+              title="Official National Scheduled Castes Finance Corporation Scheme Guidelines"
             >
-              NSFDC Guidelines Portal
+              NSFDC Guidelines Portal ↗
             </a>
             <a
               href="https://pmsuraj.dosje.gov.in"
               target="_blank"
               rel="noopener noreferrer"
               className="chip chip-emerald"
-              style={{ padding: "0.4rem 0.8rem", textDecoration: "none", fontSize: "0.76rem" }}
+              style={{ padding: "0.45rem 0.85rem", textDecoration: "none", fontSize: "0.76rem", minHeight: "36px" }}
+              title="Ministry of Social Justice PM-SURAJ Online Application Portal"
             >
-              PM-SURAJ Application Portal
+              PM-SURAJ Portal ↗
             </a>
           </div>
         </div>
 
-        {/* Expandable Drawer */}
+        {/* Expandable Routing Drawer */}
         {expanded && (
           <div style={{
             marginTop: "1.25rem",

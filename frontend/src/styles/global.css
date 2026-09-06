@@ -10,6 +10,9 @@
 html {
   font-size: 15px;
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
 }
 
 body {
@@ -18,6 +21,9 @@ body {
   color: var(--text-primary);
   line-height: 1.5;
   min-height: 100vh;
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color var(--duration-normal) ease, color var(--duration-normal) ease;
@@ -39,7 +45,7 @@ a {
 .credit-ticker {
   background: var(--ticker-bg);
   border-bottom: 1px solid var(--border-subtle);
-  padding: 0.35rem 1.5rem;
+  padding: 0.4rem 1.5rem;
   font-size: 0.74rem;
   color: var(--text-muted);
   display: flex;
@@ -54,6 +60,15 @@ a {
   color: var(--brand-accent);
 }
 
+.credit-ticker a {
+  color: var(--brand-accent);
+  transition: color var(--duration-fast) ease;
+}
+
+.credit-ticker a:hover {
+  text-decoration: underline;
+}
+
 /* ─── Premium Glassmorphic Card ─── */
 .glass-panel {
   background: var(--bg-card);
@@ -65,6 +80,7 @@ a {
   transition: transform var(--duration-fast) var(--ease-spring),
               box-shadow var(--duration-fast) ease,
               border-color var(--duration-fast) ease;
+  max-width: 100%;
 }
 
 .glass-panel:hover {
@@ -94,6 +110,7 @@ a {
   transition: transform var(--duration-fast) var(--ease-spring),
               box-shadow var(--duration-fast) ease,
               border-color var(--duration-fast) ease;
+  max-width: 100%;
 }
 
 .scheme-card-motion:hover {
@@ -109,6 +126,13 @@ a {
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
   padding: 0.5rem 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.command-nav::-webkit-scrollbar {
+  height: 0px;
+  display: none;
 }
 
 .nav-pill-btn {
@@ -124,6 +148,8 @@ a {
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
+  white-space: nowrap;
+  min-height: 44px;
   transition: all var(--duration-fast) ease;
 }
 
@@ -165,6 +191,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .score-ring-svg {
@@ -206,6 +233,7 @@ a {
   display: flex;
   align-items: center;
   gap: 0.45rem;
+  min-height: 44px;
   transition: all var(--duration-fast) var(--ease-spring);
   font-family: inherit;
   text-align: left;
@@ -233,8 +261,9 @@ a {
   border: 1.5px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-size: 0.88rem;
+  font-size: 1rem; /* 16px to prevent iOS Safari auto-zoom */
   font-family: inherit;
+  min-height: 44px;
   transition: all var(--duration-fast) ease;
 }
 
@@ -244,12 +273,27 @@ a {
   box-shadow: 0 0 0 3px var(--brand-cyan-glow);
 }
 
+.input-box.input-error {
+  border-color: var(--status-danger);
+  box-shadow: 0 0 0 3px var(--status-danger-bg);
+}
+
 .field-label {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--text-secondary);
   margin-bottom: 0.35rem;
+}
+
+.field-error-msg {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--status-danger);
+  font-size: 0.76rem;
+  font-weight: 600;
+  margin-top: 0.35rem;
 }
 
 /* ─── Action Buttons (Apex High Performance) ─── */
@@ -263,10 +307,11 @@ a {
   color: var(--text-contrast);
   border: none;
   border-radius: var(--radius-md);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
+  min-height: 44px;
   box-shadow: var(--btn-glow);
   transition: all var(--duration-fast) var(--ease-spring);
 }
@@ -291,16 +336,16 @@ a {
 input[type="range"] {
   -webkit-appearance: none;
   width: 100%;
-  height: 6px;
-  border-radius: 3px;
+  height: 8px;
+  border-radius: 4px;
   background: var(--border-subtle);
   outline: none;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--brand-accent);
   cursor: pointer;
@@ -310,7 +355,7 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.25);
+  transform: scale(1.2);
 }
 
 /* ─── Pulse Animation for Radar ─── */
@@ -329,6 +374,202 @@ input[type="range"]::-webkit-slider-thumb:hover {
 ::-webkit-scrollbar-track { background: var(--bg-inset); }
 ::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--brand-accent); }
+
+/* ─── Table Responsive Wrapper (Prevents Horizontal Page Overflow) ─── */
+.table-scroll-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  display: block;
+  border-radius: var(--radius-sm);
+}
+
+.table-scroll-wrapper table {
+  min-width: 580px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* ─── Toast Notifications (Success & Error Messages) ─── */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 400px;
+  width: calc(100vw - 3rem);
+  pointer-events: none;
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  box-shadow: 0 12px 30px var(--shadow-color);
+  animation: toastSlideIn 0.3s var(--ease-spring);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.toast-success {
+  border-color: var(--status-active-border);
+  background: var(--bg-card);
+}
+.toast-success .toast-icon {
+  color: var(--status-active);
+}
+
+.toast-error {
+  border-color: var(--status-danger-border);
+  background: var(--bg-card);
+}
+.toast-error .toast-icon {
+  color: var(--status-danger);
+}
+
+.toast-info {
+  border-color: var(--status-info-border);
+  background: var(--bg-card);
+}
+.toast-info .toast-icon {
+  color: var(--status-info);
+}
+
+.toast-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-left: auto;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.2rem;
+}
+.toast-close-btn:hover {
+  color: var(--text-primary);
+}
+
+/* ─── Mobile Navigation Drawer & Hamburger ─── */
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 1.25rem;
+}
+
+.mobile-nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1001;
+}
+
+.mobile-nav-drawer {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 85%;
+  max-width: 320px;
+  height: 100vh;
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-medium);
+  z-index: 1002;
+  padding: 1.5rem;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+}
+
+/* ─── Responsive Media Queries ─── */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+  }
+
+  .desktop-controls {
+    display: none !important;
+  }
+
+  .command-nav {
+    display: none !important;
+  }
+
+  .mobile-nav-backdrop.open,
+  .mobile-nav-drawer.open {
+    display: flex;
+  }
+
+  .credit-ticker {
+    font-size: 0.7rem;
+    padding: 0.4rem 1rem;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .credit-ticker > div {
+    justify-content: center;
+  }
+
+  .page-main-container {
+    padding: 1rem !important;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  .archetype-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .form-grid-2col {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .archetype-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .credit-ticker-metric {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.2rem;
+  }
+}
 
 /* ─── Accessibility ─── */
 @media (prefers-reduced-motion: reduce) {
