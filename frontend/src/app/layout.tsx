@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "../styles/global.css";
+import { LanguageProvider } from "../lib/LanguageContext";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -14,24 +15,29 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://samarthya-setu.gov.in"),
   title: {
-    default: "Samarthya Setu | SC Concessional Channel Finance & AI Scheme Matching",
+    default: "Samarthya Setu | India-Wide Government Scheme Matching & Concessional Credit",
     template: "%s | Samarthya Setu",
   },
-  description: "AI-driven platform empowering Scheduled Caste beneficiaries across India with instant scheme matching, 4.0%–8.0% concessional EMI simulations, and geo-spatial routing to 100+ Channel Partners.",
+  description: "India-wide AI platform empowering entrepreneurs across all categories (General, OBC, SC, ST, Minorities, Women) with instant scheme matching across PMEGP, MUDRA, Stand-Up India, PM Vishwakarma, PM SVANidhi, NSFDC, NSTFDC, NBCFDC, and NMDFC.",
   keywords: [
     "Samarthya Setu",
+    "PMEGP",
+    "PM MUDRA Yojana",
+    "Stand-Up India",
+    "PM Vishwakarma",
+    "PM SVANidhi",
     "NSFDC",
-    "SC Channel Finance",
-    "Concessional Credit Schemes",
-    "Scheduled Caste Welfare",
-    "Mahila Samriddhi",
-    "State Channelizing Agencies",
+    "NSTFDC",
+    "NBCFDC",
+    "NMDFC",
+    "CGTMSE",
+    "Government Schemes India",
+    "Concessional Credit",
     "EMI Calculator",
-    "Moratorium Simulator",
   ],
-  authors: [{ name: "National Scheduled Castes Finance & Development Corporation" }],
+  authors: [{ name: "Ministry of MSME & Ministry of Finance Channel Network" }],
   creator: "Apex Concessional Finance Network",
-  publisher: "Ministry of Social Justice and Empowerment",
+  publisher: "Government of India Multi-Portal Network",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -45,8 +51,8 @@ export const metadata: Metadata = {
     locale: "en_IN",
     url: "https://samarthya-setu.gov.in",
     siteName: "Samarthya Setu",
-    title: "Samarthya Setu — AI-Powered SC Concessional Finance",
-    description: "Match with concessional credit schemes from NSFDC, simulate repayment with interest subsidies, and locate verified channel partners across India.",
+    title: "Samarthya Setu — India-Wide Government Scheme & Credit Portal",
+    description: "Match with credit schemes across PMEGP, Mudra, Stand-Up India, Vishwakarma, NSFDC and locate 100+ verified channel partners across India.",
     images: [
       {
         url: "/favicon.svg",
@@ -58,8 +64,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Samarthya Setu | SC Concessional Channel Finance",
-    description: "Statutory income ceiling compliance, 4-8% concessional interest rates, and direct SCA partner routing.",
+    title: "Samarthya Setu | India-Wide Government Credit Network",
+    description: "PMEGP, MUDRA, Stand-Up India, Vishwakarma, and concessional loans across all Indian states.",
     images: ["/favicon.svg"],
   },
   robots: {
@@ -80,10 +86,15 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="alternate icon" href="/favicon.ico" />
       </head>
-      <body>{children}</body>
+      <body>
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
+      </body>
     </html>
   );
 }

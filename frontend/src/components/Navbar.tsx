@@ -1,11 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-
-const LANGUAGES = [
-  { code: "en", label: "English" },
-  { code: "hi", label: "हिन्दी" },
-  { code: "te", label: "తెలుగు" },
-];
+import { useLanguage } from "../lib/LanguageContext";
+import { LANGUAGES, LanguageCode } from "../lib/translations";
 
 interface NavbarProps {
   activeTab: string;
@@ -13,7 +9,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
-  const [lang, setLang] = useState("en");
+  const { lang, setLang, t } = useLanguage();
   const [theme, setTheme] = useState("dark");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -36,9 +32,9 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
   };
 
   const tabs = [
-    { id: "recommender", label: "Scheme Recommender", labelHi: "योजना सिफारिश", labelTe: "పథకాల సిఫార్సు", icon: "📋" },
-    { id: "calculator", label: "EMI & Moratorium Simulator", labelHi: "ईएमआई सिमुलेटर", labelTe: "EMI సిమ్యులేటర్", icon: "📊" },
-    { id: "partners", label: "Channel Partner Locator", labelHi: "चैनल पार्टनर लोकेटर", labelTe: "ఛానల్ పార్టనర్ గుర్తింపు", icon: "📍" },
+    { id: "recommender", label: t("tab_matcher", "Scheme Recommender"), icon: "📋" },
+    { id: "calculator", label: t("tab_simulator", "EMI & Moratorium Simulator"), icon: "📊" },
+    { id: "partners", label: t("tab_locator", "Channel Partner Locator"), icon: "📍" },
   ];
 
   return (
@@ -49,10 +45,10 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
       {/* Credit Metric & Quick Contact Ticker */}
       <div className="credit-ticker">
         <div style={{ display: "flex", gap: "1.25rem", alignItems: "center", flexWrap: "wrap" }}>
-          <span>Income Ceiling: <strong>≤ ₹5.00 Lakhs</strong></span>
-          <span>Coverage: <strong>Up to 90%</strong></span>
+          <span>{t("income_ceiling_badge", "Universal & Concessional Credit Schemes")}</span>
+          <span>Coverage: <strong>Up to 90-100%</strong></span>
           <span>Concessional Rates: <strong>4.0% – 8.0% p.a.</strong></span>
-          <span>Helpline: <a href="tel:14566" title="National SC Helpline"><strong>14566 (Toll-Free)</strong></a></span>
+          <span>Helpline: <a href="tel:14566" title="National Helpline"><strong>14566 (Toll-Free)</strong></a></span>
           <span>Email: <a href="mailto:support@samarthya-setu.gov.in" title="Official Helpdesk"><strong>support@samarthya-setu.gov.in</strong></a></span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -62,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
             boxShadow: "0 0 8px var(--status-active)"
           }} />
           <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--status-active)", letterSpacing: "0.04em" }}>
-            PORTAL ACTIVE
+            ALL-INDIA LIVE
           </span>
         </div>
       </div>
@@ -105,13 +101,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
               alignItems: "center",
               gap: "0.4rem"
             }}>
-              SAMARTHYA SETU
+              {t("portal_title", "SAMARTHYA SETU")}
               <span className="chip chip-emerald" style={{ fontSize: "0.62rem", padding: "0.15rem 0.45rem" }}>
-                NSFDC
+                {t("portal_badge", "Govt of India Multi-Portal")}
               </span>
             </div>
             <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontWeight: "500" }}>
-              Ministry of Social Justice & Empowerment • SC Channel Finance
+              {t("portal_tagline", "National AI Scheme Matching & Concessional Channel Finance Network")}
             </div>
           </div>
         </div>
@@ -123,7 +119,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
             href="tel:14566"
             className="chip chip-cyan"
             style={{ textDecoration: "none", fontSize: "0.75rem", padding: "0.35rem 0.75rem" }}
-            title="Click to call National SC Helpline"
+            title="Click to call National Helpline"
           >
             📞 14566
           </a>
@@ -148,13 +144,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
               gap: "0.35rem"
             }}
           >
-            {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
+            {theme === "dark" ? `☀️ ${t("theme_light", "Light Mode")}` : `🌙 ${t("theme_dark", "Dark Mode")}`}
           </button>
 
-          {/* Language Selector */}
+          {/* Multilingual Selector */}
           <select
             value={lang}
-            onChange={(e) => setLang(e.target.value)}
+            onChange={(e) => setLang(e.target.value as LanguageCode)}
             aria-label="Select portal language"
             style={{
               background: "var(--bg-card)",
@@ -162,8 +158,8 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
               color: "var(--text-primary)",
               padding: "0.45rem 0.75rem",
               borderRadius: "6px",
-              fontSize: "0.78rem",
-              fontWeight: "600",
+              fontSize: "0.82rem",
+              fontWeight: "700",
               fontFamily: "inherit",
               cursor: "pointer",
               outline: "none",
@@ -172,7 +168,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
           >
             {LANGUAGES.map((l) => (
               <option key={l.code} value={l.code} style={{ background: "var(--bg-surface)", color: "var(--text-primary)" }}>
-                {l.label}
+                {l.nativeLabel} ({l.label})
               </option>
             ))}
           </select>
@@ -198,9 +194,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
             onClick={() => handleTabClick(tab.id)}
           >
             <span>{tab.icon}</span>
-            <span>
-              {lang === "hi" ? tab.labelHi : lang === "te" ? tab.labelTe : tab.label}
-            </span>
+            <span>{tab.label}</span>
           </button>
         ))}
       </nav>
@@ -215,7 +209,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
       <div className={`mobile-nav-drawer ${mobileMenuOpen ? "open" : ""}`}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--border-subtle)", paddingBottom: "1rem" }}>
           <div style={{ fontWeight: "800", color: "var(--text-primary)", fontSize: "1rem" }}>
-            Portal Navigation
+            {t("portal_title", "Samarthya Setu")}
           </div>
           <button
             onClick={() => setMobileMenuOpen(false)}
@@ -240,7 +234,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
         {/* Navigation Links */}
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>
-            Tools & Workspaces
+            Navigation
           </div>
           {tabs.map((tab) => (
             <button
@@ -264,7 +258,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
               }}
             >
               <span style={{ fontSize: "1.1rem" }}>{tab.icon}</span>
-              <span>{lang === "hi" ? tab.labelHi : lang === "te" ? tab.labelTe : tab.label}</span>
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
@@ -272,13 +266,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
         {/* Preferences & Quick Actions */}
         <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Preferences
+            Preferences & Language
           </div>
 
           <button
             onClick={toggleTheme}
             style={{
-              width: "100%",
+              width: "100",
               padding: "0.75rem",
               borderRadius: "8px",
               background: "var(--bg-card)",
@@ -293,18 +287,17 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
               minHeight: "44px"
             }}
           >
-            <span>Appearance Theme</span>
-            <span>{theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}</span>
+            <span>Theme</span>
+            <span>{theme === "dark" ? `☀️ ${t("theme_light", "Light Mode")}` : `🌙 ${t("theme_dark", "Dark Mode")}`}</span>
           </button>
 
-          <div style={{ display: "flex", gap: "0.4rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "0.4rem" }}>
             {LANGUAGES.map((l) => (
               <button
                 key={l.code}
                 onClick={() => setLang(l.code)}
                 style={{
-                  flex: 1,
-                  padding: "0.55rem 0",
+                  padding: "0.55rem 0.25rem",
                   borderRadius: "6px",
                   background: lang === l.code ? "var(--brand-primary)" : "var(--bg-card)",
                   color: lang === l.code ? "var(--text-contrast)" : "var(--text-secondary)",
@@ -315,7 +308,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
                   minHeight: "40px"
                 }}
               >
-                {l.label}
+                {l.nativeLabel}
               </button>
             ))}
           </div>
@@ -330,9 +323,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
           flexDirection: "column",
           gap: "0.6rem"
         }}>
-          <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Direct Assistance
-          </div>
           <a
             href="tel:14566"
             className="btn-apex"
@@ -341,32 +331,14 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
               fontSize: "0.82rem",
               padding: "0.65rem 1rem",
               borderRadius: "6px",
-              minHeight: "44px"
+              minHeight: "44px",
+              textAlign: "center"
             }}
           >
-            📞 Call Helpline 14566
-          </a>
-          <a
-            href="mailto:support@samarthya-setu.gov.in"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.4rem",
-              padding: "0.6rem",
-              borderRadius: "6px",
-              background: "var(--bg-card)",
-              border: "1px solid var(--border-subtle)",
-              color: "var(--text-secondary)",
-              fontSize: "0.76rem",
-              textDecoration: "none",
-              minHeight: "44px"
-            }}
-          >
-            ✉️ Email Support
+            📞 {t("helpline", "National Helpline 14566")}
           </a>
           <div style={{ fontSize: "0.68rem", color: "var(--text-faint)", textAlign: "center", marginTop: "0.25rem" }}>
-            Statutory Income Ceiling: ≤ ₹5.00 Lakhs
+            {t("income_ceiling_badge", "Universal & Concessional Credit Schemes")}
           </div>
         </div>
       </div>

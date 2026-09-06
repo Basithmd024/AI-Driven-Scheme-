@@ -10,6 +10,7 @@ router = APIRouter()
 
 
 @router.post("/recommend", response_model=List[SchemeMatchResult], tags=["AI Scheme Matching"])
+@router.post("/evaluate", response_model=List[SchemeMatchResult], tags=["AI Scheme Matching"])
 async def match_schemes(profile: EntrepreneurProfileBase):
     """
     Evaluates entrepreneur profile demographics, caste, gender, turnover, 

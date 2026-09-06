@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { calculateEMI, EMIResponse } from "../lib/api";
+import { useLanguage } from "../lib/LanguageContext";
 
 export const FinancialCalculator: React.FC = () => {
+  const { t } = useLanguage();
   const [projectCost, setProjectCost] = useState<number>(500000);
   const [promoter, setPromoter] = useState<number>(5);
   const [rate, setRate] = useState<number>(6.0);
@@ -28,7 +30,6 @@ export const FinancialCalculator: React.FC = () => {
       setResult(data);
     } catch (err) {
       console.warn("Using offline fallback calculation", err);
-      // Precise local fallback
       const netLoan = projectCost * (1 - promoter / 100);
       const monthlyRate = rate / 100 / 12;
       const repaymentMonths = tenure * 12 - moratorium;
@@ -66,7 +67,7 @@ export const FinancialCalculator: React.FC = () => {
           principal_paid: i < moratorium ? 0 : emi - netLoan * monthlyRate,
           interest_paid: netLoan * monthlyRate,
           total_payment: i < moratorium ? netLoan * monthlyRate : emi,
-          closing_balance: netLoan * 0.95,
+          closing_balance: netLoan * (1 - (i + 1) * 0.05),
         })),
       });
     } finally {
@@ -87,10 +88,10 @@ export const FinancialCalculator: React.FC = () => {
       {/* Header */}
       <div style={{ marginBottom: "1.5rem" }}>
         <h2 style={{ fontSize: "1.25rem", fontWeight: "800", color: "var(--text-primary)" }}>
-          Concessional EMI & Moratorium Simulator
+          {t("calc_heading", "Concessional EMI & Moratorium Simulator")}
         </h2>
         <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "2px" }}>
-          Simulating reducing balance repayments vs standard 13.5% commercial bank lending
+          {t("calc_subheading", "Compare subsidized government loan repayments against standard 13.5% commercial bank lending benchmarks.")}
         </div>
       </div>
 
@@ -112,13 +113,15 @@ export const FinancialCalculator: React.FC = () => {
             paddingBottom: "0.5rem",
             borderBottom: "1px solid var(--border-subtle)"
           }}>
-            Financing Inputs
+            {t("calc_inputs_title", "Financing & Term Parameters")}
           </div>
 
           {/* Project Cost Slider */}
           <div style={{ marginBottom: "1.2rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
-              <label className="field-label" style={{ margin: 0 }}>Total Project Cost</label>
+              <label className="field-label" style={{ margin: 0 }}>
+                {t("calc_slider_cost", "Total Project Cost")}:
+              </label>
               <span style={{ fontWeight: "800", color: "var(--brand-accent)" }}>₹{fmt(projectCost)}</span>
             </div>
             <input
@@ -134,7 +137,9 @@ export const FinancialCalculator: React.FC = () => {
           {/* Promoter Share Slider */}
           <div style={{ marginBottom: "1.2rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
-              <label className="field-label" style={{ margin: 0 }}>Promoter Margin: {promoter}%</label>
+              <label className="field-label" style={{ margin: 0 }}>
+                {t("calc_slider_margin", "Promoter Equity Contribution")}: {promoter}%
+              </label>
               <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
                 Equity: ₹{fmt((projectCost * promoter) / 100)}
               </span>
@@ -145,14 +150,16 @@ export const FinancialCalculator: React.FC = () => {
               aria-label="Promoter Margin percentage"
             />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "3px" }}>
-              <span>0% (Micro)</span><span>10% (Term Loan)</span><span>20%</span>
+              <span>0% (Micro / PM SVANidhi)</span><span>5-10% (PMEGP / MUDRA)</span><span>20%</span>
             </div>
           </div>
 
           {/* Interest Rate */}
           <div style={{ marginBottom: "1.2rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
-              <label className="field-label" style={{ margin: 0 }}>Concessional Rate</label>
+              <label className="field-label" style={{ margin: 0 }}>
+                {t("calc_slider_rate", "Concessional Interest Rate")}
+              </label>
               <span style={{ fontWeight: "800", color: "var(--accent-emerald)" }}>{rate}% p.a.</span>
             </div>
             <input
@@ -161,14 +168,16 @@ export const FinancialCalculator: React.FC = () => {
               aria-label="Concessional Rate"
             />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "3px" }}>
-              <span>4.0% (Mahila Samriddhi)</span><span>6.5% (MCS)</span><span>8.0%</span>
+              <span>4.0% (Mahila / Vishwakarma)</span><span>6.5% (MSME Concessional)</span><span>8.5-9.0%</span>
             </div>
           </div>
 
           {/* Tenure & Moratorium */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "0.75rem", marginBottom: "1.2rem" }}>
             <div>
-              <label className="field-label">Tenure: {tenure} Yrs ({totalMonths} mo)</label>
+              <label className="field-label">
+                {t("calc_slider_tenure", "Repayment Tenure")}: {tenure} Yrs ({totalMonths} mo)
+              </label>
               <input
                 type="range" min={1} max={10} step={1}
                 value={tenure} onChange={(e) => setTenure(Number(e.target.value))}
@@ -176,7 +185,9 @@ export const FinancialCalculator: React.FC = () => {
               />
             </div>
             <div>
-              <label className="field-label">Moratorium: {moratorium} Months</label>
+              <label className="field-label">
+                {t("calc_slider_moratorium", "Moratorium Period")}: {moratorium} Months
+              </label>
               <input
                 type="range" min={0} max={18} step={3}
                 value={moratorium} onChange={(e) => setMoratorium(Number(e.target.value))}
@@ -217,8 +228,8 @@ export const FinancialCalculator: React.FC = () => {
               />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "0.35rem" }}>
-              <span style={{ color: "var(--accent-amber)" }}>● Moratorium ({moratorium} mo)</span>
-              <span style={{ color: "var(--brand-accent)" }}>● Principal + Interest ({repaymentMonths} mo)</span>
+              <span style={{ color: "var(--accent-amber)" }}>● {t("calc_phase_moratorium", "Moratorium")} ({moratorium} mo)</span>
+              <span style={{ color: "var(--brand-accent)" }}>● {t("calc_phase_repayment", "Repayment")} ({repaymentMonths} mo)</span>
             </div>
           </div>
         </div>
@@ -227,7 +238,7 @@ export const FinancialCalculator: React.FC = () => {
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {result && (
             <>
-              {/* Beneficiary Savings Card (Item 15: Success Message Indicator) */}
+              {/* Beneficiary Savings Card */}
               <div className="glass-panel" style={{
                 padding: "1.25rem",
                 background: "var(--accent-emerald-bg)",
@@ -236,7 +247,7 @@ export const FinancialCalculator: React.FC = () => {
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
                   <span style={{ fontSize: "0.74rem", fontWeight: "800", color: "var(--status-active)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                    ✓ Direct Beneficiary Savings
+                    ✓ {t("calc_savings_title", "DIRECT BENEFICIARY SAVINGS")}
                   </span>
                   <span className="chip chip-emerald" style={{ fontSize: "0.68rem" }}>
                     Subsidized Scheme
@@ -246,7 +257,7 @@ export const FinancialCalculator: React.FC = () => {
                   ₹{fmt(result.beneficiary_savings_amount)}
                 </div>
                 <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
-                  Saved over full loan lifecycle compared to 13.5% commercial bank financing.
+                  {t("calc_savings_desc", "Saved over full loan lifecycle compared to 13.5% commercial bank financing.")}
                 </div>
               </div>
 
@@ -254,7 +265,7 @@ export const FinancialCalculator: React.FC = () => {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem" }}>
                 <div className="glass-panel" style={{ padding: "1rem", borderRadius: "10px" }}>
                   <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase" }}>
-                    Concessional EMI
+                    {t("calc_emi_card", "Concessional Monthly EMI")}
                   </div>
                   <div style={{ fontSize: "1.35rem", fontWeight: "900", color: "var(--brand-accent)", margin: "0.25rem 0" }}>
                     ₹{fmt(result.monthly_emi_after_moratorium)}
@@ -266,9 +277,9 @@ export const FinancialCalculator: React.FC = () => {
 
                 <div className="glass-panel" style={{ padding: "1rem", borderRadius: "10px" }}>
                   <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: "700", textTransform: "uppercase" }}>
-                    Moratorium Cost
+                    {t("calc_moratorium_card", "Moratorium Phase Cost")}
                   </div>
-                  <div style={{ fontSize: "1.35rem", fontWeight: "900", color: "var(--status-warning)", margin: "0.25rem 0" }}>
+                  <div style={{ fontSize: "1.35rem", fontWeight: "900", color: "var(--accent-amber)", margin: "0.25rem 0" }}>
                     ₹{fmt(result.moratorium_monthly_interest)}
                   </div>
                   <div style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
@@ -277,90 +288,83 @@ export const FinancialCalculator: React.FC = () => {
                 </div>
               </div>
 
-              {/* Repayment Breakdown Details */}
-              <div className="glass-panel" style={{ padding: "1.2rem", borderRadius: "12px" }}>
-                <div style={{ fontSize: "0.84rem", fontWeight: "800", color: "var(--text-primary)", marginBottom: "0.75rem" }}>
+              {/* Full Financing Structure Summary */}
+              <div className="glass-panel" style={{ padding: "1.25rem", borderRadius: "10px" }}>
+                <div style={{ fontSize: "0.82rem", fontWeight: "800", color: "var(--text-primary)", marginBottom: "0.75rem" }}>
                   Financing Structure
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", fontSize: "0.78rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem", fontSize: "0.8rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-secondary)" }}>
-                    <span>Sanctioned Loan (90-100%):</span>
+                    <span>{t("calc_sanctioned_loan", "Sanctioned Loan Amount")}:</span>
                     <strong style={{ color: "var(--text-primary)" }}>₹{fmt(result.net_loan_amount)}</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-secondary)" }}>
-                    <span>Promoter Equity Contribution:</span>
+                    <span>{t("calc_promoter_equity", "Promoter Equity Contribution")}:</span>
                     <strong style={{ color: "var(--text-primary)" }}>₹{fmt(result.promoter_contribution)}</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-secondary)" }}>
-                    <span>Total Concessional Interest:</span>
+                    <span>{t("calc_total_interest", "Total Concessional Interest")}:</span>
                     <strong style={{ color: "var(--status-active)" }}>₹{fmt(result.total_concessional_interest)}</strong>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-secondary)" }}>
-                    <span>Total Net Outflow:</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-secondary)", borderTop: "1px solid var(--border-subtle)", paddingTop: "0.45rem" }}>
+                    <span>{t("calc_net_outflow", "Total Net Outflow")}:</span>
                     <strong style={{ color: "var(--brand-accent)" }}>₹{fmt(result.total_repayment_amount)}</strong>
                   </div>
                 </div>
+              </div>
 
-                {/* Toggle Amortization Schedule */}
+              {/* Collapsible Amortization Schedule */}
+              <div className="glass-panel" style={{ padding: "0.9rem 1.25rem", borderRadius: "10px" }}>
                 <button
                   onClick={() => setShowSchedule(!showSchedule)}
                   style={{
                     width: "100%",
-                    marginTop: "1rem",
-                    padding: "0.65rem",
-                    borderRadius: "6px",
-                    background: "var(--bg-surface)",
-                    border: "1px solid var(--border-subtle)",
-                    color: "var(--text-primary)",
-                    fontSize: "0.78rem",
-                    fontWeight: "700",
-                    cursor: "pointer",
+                    background: "none",
+                    border: "none",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
-                    minHeight: "44px"
+                    cursor: "pointer",
+                    color: "var(--text-primary)",
+                    fontSize: "0.82rem",
+                    fontWeight: "700",
+                    fontFamily: "inherit",
+                    padding: 0
                   }}
+                  aria-expanded={showSchedule}
                 >
-                  <span>Amortization Schedule (First 12 Months)</span>
-                  <span>{showSchedule ? "▲ Close" : "▼ Expand"}</span>
+                  <span>{t("calc_schedule_toggle", "Amortization Schedule (First 12 Months)")}</span>
+                  <span>{showSchedule ? "▲ Collapse" : "▼ Expand"}</span>
                 </button>
 
-                {/* Item 1 & Item 13: Horizontal Scroll Protected Table Container */}
                 {showSchedule && (
-                  <div className="table-scroll-wrapper" style={{ marginTop: "0.9rem", maxHeight: "280px", overflowY: "auto" }}>
-                    <table>
+                  <div style={{ marginTop: "1rem", overflowX: "auto" }}>
+                    <table style={{ width: "100%", fontSize: "0.74rem", borderCollapse: "collapse", color: "var(--text-secondary)" }}>
                       <thead>
-                        <tr style={{ borderBottom: "1px solid var(--border-subtle)", color: "var(--text-muted)", textAlign: "left" }}>
-                          <th style={{ padding: "0.4rem" }}>Month</th>
-                          <th style={{ padding: "0.4rem" }}>Phase</th>
-                          <th style={{ padding: "0.4rem" }}>Principal</th>
-                          <th style={{ padding: "0.4rem" }}>Interest</th>
-                          <th style={{ padding: "0.4rem" }}>Total Paid</th>
-                          <th style={{ padding: "0.4rem" }}>Closing Balance</th>
+                        <tr style={{ borderBottom: "1px solid var(--border-subtle)", textAlign: "right" }}>
+                          <th style={{ textAlign: "left", padding: "0.4rem" }}>{t("calc_th_month", "Month")}</th>
+                          <th style={{ textAlign: "center", padding: "0.4rem" }}>{t("calc_th_phase", "Phase")}</th>
+                          <th style={{ padding: "0.4rem" }}>{t("calc_th_principal", "Principal")}</th>
+                          <th style={{ padding: "0.4rem" }}>{t("calc_th_interest", "Interest")}</th>
+                          <th style={{ padding: "0.4rem" }}>{t("calc_th_total", "Payment")}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {result.amortization_schedule.map((row) => (
-                          <tr
-                            key={row.month}
-                            style={{
-                              borderBottom: "1px solid var(--border-subtle)",
-                              background: row.is_moratorium ? "var(--status-warning-bg)" : "transparent",
-                              color: "var(--text-secondary)"
-                            }}
-                          >
-                            <td style={{ padding: "0.4rem" }}>M{row.month}</td>
-                            <td style={{ padding: "0.4rem" }}>
-                              {row.is_moratorium ? (
-                                <span className="chip chip-amber" style={{ fontSize: "0.62rem" }}>Moratorium</span>
-                              ) : (
-                                <span className="chip chip-cyan" style={{ fontSize: "0.62rem" }}>EMI</span>
-                              )}
+                          <tr key={row.month} style={{ borderBottom: "1px solid var(--border-subtle)", textAlign: "right" }}>
+                            <td style={{ textAlign: "left", padding: "0.4rem", color: "var(--text-primary)", fontWeight: "600" }}>
+                              M{row.month}
+                            </td>
+                            <td style={{ textAlign: "center", padding: "0.4rem" }}>
+                              <span className={row.is_moratorium ? "chip chip-amber" : "chip chip-emerald"} style={{ fontSize: "0.62rem" }}>
+                                {row.is_moratorium ? t("calc_phase_moratorium", "Moratorium") : t("calc_phase_repayment", "Repay")}
+                              </span>
                             </td>
                             <td style={{ padding: "0.4rem" }}>₹{fmt(row.principal_paid)}</td>
                             <td style={{ padding: "0.4rem" }}>₹{fmt(row.interest_paid)}</td>
-                            <td style={{ padding: "0.4rem", fontWeight: "700", color: "var(--text-primary)" }}>₹{fmt(row.total_payment)}</td>
-                            <td style={{ padding: "0.4rem" }}>₹{fmt(row.closing_balance)}</td>
+                            <td style={{ padding: "0.4rem", fontWeight: "700", color: "var(--text-primary)" }}>
+                              ₹{fmt(row.total_payment)}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

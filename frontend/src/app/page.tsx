@@ -5,63 +5,8 @@ import { SchemeCard } from "../components/SchemeCard";
 import { FinancialCalculator } from "../components/FinancialCalculator";
 import { PartnerLocator } from "../components/PartnerLocator";
 import { matchSchemes, EntrepreneurProfile, SchemeMatchResult } from "../lib/api";
-
-const ARCHETYPES = [
-  {
-    id: "micro",
-    name: "Micro Retailer",
-    cost: 120000,
-    income: 150000,
-    type: "microfinance",
-    gender: "male",
-    desc: "Petty trade, tailoring, retail (Up to ₹1.4L)"
-  },
-  {
-    id: "mahila",
-    name: "Mahila Samriddhi",
-    cost: 140000,
-    income: 180000,
-    type: "women_microfinance",
-    gender: "female",
-    desc: "SC Women / SHGs at 4.0% interest"
-  },
-  {
-    id: "msme",
-    name: "MSME Term Loan",
-    cost: 2500000,
-    income: 380000,
-    type: "term_loan",
-    gender: "male",
-    desc: "Manufacturing, workshops, units"
-  },
-  {
-    id: "edu_abroad",
-    name: "Higher Studies Abroad",
-    cost: 3500000,
-    income: 420000,
-    type: "education_overseas",
-    gender: "male",
-    desc: "Foreign technical/professional courses"
-  },
-  {
-    id: "green",
-    name: "Clean Energy / EV",
-    cost: 2000000,
-    income: 320000,
-    type: "green_business",
-    gender: "male",
-    desc: "Commercial EV, solar installation"
-  },
-];
-
-const PROJECT_TYPES = [
-  { value: "microfinance", label: "Micro Credit / Petty Business (Up to ₹1.40L)" },
-  { value: "women_microfinance", label: "Women Micro-Finance (Mahila Samriddhi - 4% p.a.)" },
-  { value: "term_loan", label: "Small & Medium Enterprise Term Loan (Up to ₹50L)" },
-  { value: "education_domestic", label: "Professional / Technical Education (Domestic - ₹20L)" },
-  { value: "education_overseas", label: "Higher Studies Abroad / Foreign STEM (Up to ₹40L)" },
-  { value: "green_business", label: "Green Business / Clean Energy / EV / Solar (Up to ₹30L)" },
-];
+import { useLanguage } from "../lib/LanguageContext";
+import { ALL_INDIA_STATES } from "../lib/translations";
 
 interface Toast {
   id: string;
@@ -71,21 +16,122 @@ interface Toast {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState("recommender");
-  const [activeArchetype, setActiveArchetype] = useState<string>("micro");
+  const { lang, t } = useLanguage();
+  const [activeTab, setActiveTab] = useState<string>("recommender");
+  const [activeArchetype, setActiveArchetype] = useState<string>("pmegp");
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  // Item 4: Dynamic Page Title per tab
+  const ARCHETYPES = [
+    {
+      id: "pmegp",
+      nameKey: "arch_pmegp_name",
+      defaultName: "PMEGP Manufacturing",
+      descKey: "arch_pmegp_desc",
+      defaultDesc: "Up to 35% capital subsidy for units up to ₹50L",
+      cost: 2500000,
+      income: 400000,
+      type: "msme_manufacturing",
+      category: "General",
+      gender: "male",
+    },
+    {
+      id: "mudra",
+      nameKey: "arch_mudra_name",
+      defaultName: "PM MUDRA (Kishore/Tarun)",
+      descKey: "arch_mudra_desc",
+      defaultDesc: "Collateral-free business loan up to ₹10L - ₹20L",
+      cost: 1000000,
+      income: 300000,
+      type: "small_business",
+      category: "OBC",
+      gender: "male",
+    },
+    {
+      id: "vishwakarma",
+      nameKey: "arch_vishwakarma_name",
+      defaultName: "PM Vishwakarma Artisan",
+      descKey: "arch_vishwakarma_desc",
+      defaultDesc: "5% loan up to ₹3L + ₹15K toolkit grant for 18 trades",
+      cost: 200000,
+      income: 150000,
+      type: "artisan_crafts",
+      category: "OBC",
+      gender: "male",
+    },
+    {
+      id: "svanidhi",
+      nameKey: "arch_svanidhi_name",
+      defaultName: "PM SVANidhi Street Vendor",
+      descKey: "arch_svanidhi_desc",
+      defaultDesc: "Up to ₹50K working capital with 7% interest subsidy",
+      cost: 50000,
+      income: 120000,
+      type: "micro_retail",
+      category: "General",
+      gender: "male",
+    },
+    {
+      id: "standup",
+      nameKey: "arch_standup_name",
+      defaultName: "Stand-Up India (Women/SC/ST)",
+      descKey: "arch_standup_desc",
+      defaultDesc: "Greenfield enterprise credit from ₹10L to ₹1 Crore",
+      cost: 4500000,
+      income: 550000,
+      type: "greenfield_enterprise",
+      category: "SC",
+      gender: "female",
+    },
+    {
+      id: "mahila",
+      nameKey: "arch_mahila_name",
+      defaultName: "Mahila Samriddhi (Women)",
+      descKey: "arch_mahila_desc",
+      defaultDesc: "Ultra-concessional 4.0% interest for women micro-trades",
+      cost: 140000,
+      income: 180000,
+      type: "women_microfinance",
+      category: "SC",
+      gender: "female",
+    },
+    {
+      id: "green",
+      nameKey: "arch_green_name",
+      defaultName: "Clean Tech & EV Commercial",
+      descKey: "arch_green_desc",
+      defaultDesc: "E-rickshaws, commercial EVs & solar rooftop units",
+      cost: 2000000,
+      income: 350000,
+      type: "green_business",
+      category: "General",
+      gender: "male",
+    },
+  ];
+
+  const PROJECT_TYPES = [
+    { value: "msme_manufacturing", label: "MSME Manufacturing / Processing Unit (Up to ₹50L)" },
+    { value: "small_business", label: "Small Business / Trading / Services (MUDRA - Up to ₹20L)" },
+    { value: "artisan_crafts", label: "Artisan / Craftsman / Traditional Trade (PM Vishwakarma - ₹3L)" },
+    { value: "micro_retail", label: "Urban / Rural Micro-Vendor (PM SVANidhi - Up to ₹50K)" },
+    { value: "greenfield_enterprise", label: "Greenfield Manufacturing / Services (Stand-Up India - ₹1 Cr)" },
+    { value: "microfinance", label: "Micro Credit / Petty Business (Up to ₹1.40L)" },
+    { value: "women_microfinance", label: "Women Micro-Finance (Mahila Samriddhi - 4% p.a.)" },
+    { value: "term_loan", label: "Term Loan for SC/OBC Units (Up to ₹50L)" },
+    { value: "green_business", label: "Clean Energy / Electric Vehicles / Solar (Up to ₹30L)" },
+    { value: "education_overseas", label: "Higher Studies Abroad / STEM (Padho Pardesh - ₹20L)" },
+  ];
+
+  // Dynamic Page Title per tab
   useEffect(() => {
     const titles: Record<string, string> = {
-      recommender: "Scheme Recommender | Samarthya Setu",
-      calculator: "EMI & Moratorium Simulator | Samarthya Setu",
-      partners: "Channel Partner Locator | Samarthya Setu",
+      recommender: `${t("tab_matcher", "Scheme Recommender")} | ${t("portal_title", "Samarthya Setu")}`,
+      calculator: `${t("tab_simulator", "EMI & Moratorium Simulator")} | ${t("portal_title", "Samarthya Setu")}`,
+      partners: `${t("tab_locator", "Channel Partner Locator")} | ${t("portal_title", "Samarthya Setu")}`,
     };
-    document.title = titles[activeTab] || "Samarthya Setu | SC Concessional Channel Finance";
-  }, [activeTab]);
+    document.title = titles[activeTab] || "Samarthya Setu | National Government Credit Portal";
+  }, [activeTab, lang, t]);
 
-  // Toast Management (Items 14 & 15)
+  // Toast Management
   const addToast = (type: "success" | "error" | "info", title: string, message: string) => {
     const id = Math.random().toString(36).substring(2, 9);
     setToasts((prev) => [...prev, { id, type, title, message }]);
@@ -100,14 +146,14 @@ export default function Home() {
 
   // Beneficiary Profile State
   const [profile, setProfile] = useState<EntrepreneurProfile>({
-    full_name: "Ramesh K.",
+    full_name: "Rajesh Kumar",
     gender: "male",
-    social_category: "SC",
-    annual_family_income: 180000,
+    social_category: "General",
+    annual_family_income: 400000,
     is_differently_abled: false,
-    project_type: "microfinance",
+    project_type: "msme_manufacturing",
     education_status: "Graduate",
-    estimated_project_cost: 120000,
+    estimated_project_cost: 2500000,
     state: "Telangana",
     district: "Hyderabad",
     is_shg_member: false,
@@ -117,6 +163,7 @@ export default function Home() {
   const [matches, setMatches] = useState<SchemeMatchResult[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [hasSearched, setHasSearched] = useState<boolean>(false);
+  const [filterType, setFilterType] = useState<"all" | "high" | "subsidized">("all");
 
   const handleSelectArchetype = (arch: typeof ARCHETYPES[0]) => {
     setActiveArchetype(arch.id);
@@ -125,14 +172,14 @@ export default function Home() {
       project_type: arch.type,
       estimated_project_cost: arch.cost,
       annual_family_income: arch.income,
+      social_category: arch.category,
       gender: arch.gender,
     };
     setProfile(updated);
-    executeMatch(updated, `Profile switched to ${arch.name}`);
+    executeMatch(updated, `Switched profile to ${t(arch.nameKey, arch.defaultName)}`);
   };
 
   const executeMatch = async (currentProfile = profile, customSuccessMsg?: string) => {
-    // Item 14: Validation before API call
     if (currentProfile.estimated_project_cost <= 0) {
       addToast("error", "Invalid Project Cost", "Project cost must be greater than ₹0 to match financing programs.");
       return;
@@ -144,20 +191,18 @@ export default function Home() {
       setMatches(results);
       setHasSearched(true);
       
-      // Item 15: Add success message
       const eligibleCount = results.filter(
         (r) => r.eligibility_status === "Highly Eligible" || r.eligibility_status === "Eligible"
       ).length;
       
       if (eligibleCount > 0) {
-        addToast("success", "Eligibility Evaluated", customSuccessMsg || `Successfully matched ${eligibleCount} concessional schemes.`);
+        addToast("success", "Eligibility Evaluated", customSuccessMsg || `Matched ${eligibleCount} India-wide government schemes.`);
       } else {
-        addToast("info", "Evaluation Complete", "No schemes directly met the criteria. Check income or parameters.");
+        addToast("info", "Evaluation Complete", "Universal schemes matched based on sector and parameters.");
       }
     } catch (err) {
       console.warn("Backend match API call fallback", err);
-      // Item 14: Error feedback message
-      addToast("error", "Evaluation Notice", "Backend service offline. Evaluated schemes using offline institutional rules.");
+      addToast("error", "Evaluation Notice", "Evaluated schemes using offline institutional guidelines.");
       setHasSearched(true);
     } finally {
       setLoading(false);
@@ -170,10 +215,21 @@ export default function Home() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    executeMatch(profile, "Evaluation updated with custom parameters");
+    executeMatch(profile, "Evaluated with custom parameters");
   };
 
   const fmt = (n: number) => n.toLocaleString("en-IN");
+
+  // Filtering matches based on tabs
+  const filteredMatches = matches.filter((m) => {
+    if (filterType === "high") {
+      return m.match_score >= 80;
+    }
+    if (filterType === "subsidized") {
+      return (m.scheme as any).subsidy_percentage && (m.scheme as any).subsidy_percentage > 0;
+    }
+    return true;
+  });
 
   return (
     <div style={{
@@ -185,7 +241,7 @@ export default function Home() {
       maxWidth: "100vw",
       width: "100%"
     }}>
-      {/* Toast Notification Layer (Items 14 & 15) */}
+      {/* Toast Notification Layer */}
       <div className="toast-container" aria-live="polite">
         {toasts.map((toast) => (
           <div key={toast.id} className={`toast toast-${toast.type}`}>
@@ -227,19 +283,23 @@ export default function Home() {
           <div>
             {/* Quick Profile Selection */}
             <div style={{ marginBottom: "1.25rem" }}>
-              <div style={{
-                fontSize: "0.76rem",
-                fontWeight: "700",
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: "0.45rem"
-              }}>
-                Pre-Configured Beneficiary Archetypes
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.45rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                <div style={{
+                  fontSize: "0.76rem",
+                  fontWeight: "700",
+                  color: "var(--text-muted)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em"
+                }}>
+                  {t("quick_archetypes", "Quick Select Enterprise Archetypes")}
+                </div>
+                <span className="chip chip-cyan" style={{ fontSize: "0.68rem" }}>
+                  {t("all_demographics_badge", "Open to General, OBC, SC, ST, Minorities & Women")}
+                </span>
               </div>
               <div className="archetype-grid" style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
                 gap: "0.6rem"
               }}>
                 {ARCHETYPES.map((arch) => (
@@ -247,12 +307,14 @@ export default function Home() {
                     key={arch.id}
                     onClick={() => handleSelectArchetype(arch)}
                     className={`archetype-btn ${activeArchetype === arch.id ? "active" : ""}`}
-                    aria-label={`Select ${arch.name} profile`}
+                    aria-label={`Select ${t(arch.nameKey, arch.defaultName)} profile`}
                   >
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: "700", color: "var(--text-primary)" }}>{arch.name}</div>
-                      <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "2px" }}>
-                        ₹{fmt(arch.cost)} • {arch.desc}
+                      <div style={{ fontWeight: "700", color: "var(--text-primary)", fontSize: "0.84rem" }}>
+                        {t(arch.nameKey, arch.defaultName)}
+                      </div>
+                      <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "2px" }}>
+                        ₹{fmt(arch.cost)} • {t(arch.descKey, arch.defaultDesc)}
                       </div>
                     </div>
                   </button>
@@ -260,7 +322,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Responsive Grid Layout (Items 1, 10, 12, 13) */}
+            {/* Responsive Grid Layout */}
             <div className="hero-grid" style={{
               display: "grid",
               gridTemplateColumns: "1fr 1.65fr",
@@ -274,36 +336,43 @@ export default function Home() {
                   fontSize: "0.92rem", fontWeight: "800", color: "var(--text-primary)",
                   marginBottom: "1.1rem", paddingBottom: "0.45rem", borderBottom: "1px solid var(--border-subtle)"
                 }}>
-                  Beneficiary Eligibility Assessment
+                  {t("form_profile_title", "Beneficiary & Enterprise Profile")}
                 </div>
 
                 {/* Social Category & Gender */}
                 <div className="form-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "0.9rem" }}>
                   <div>
-                    <label className="field-label">Social Category</label>
+                    <label className="field-label">{t("label_social_category", "Social Category")} *</label>
                     <select
                       className="input-box"
                       value={profile.social_category}
-                      onChange={(e) => setProfile({ ...profile, social_category: e.target.value })}
+                      onChange={(e) => {
+                        setActiveArchetype("");
+                        setProfile({ ...profile, social_category: e.target.value });
+                      }}
                       aria-label="Social Category"
                     >
-                      <option value="SC">SC (Scheduled Caste)</option>
-                      <option value="OBC">OBC</option>
-                      <option value="General">General</option>
-                      <option value="ST">ST</option>
+                      <option value="General">{t("cat_general", "General / Unreserved")}</option>
+                      <option value="OBC">{t("cat_obc", "Other Backward Class (OBC)")}</option>
+                      <option value="SC">{t("cat_sc", "Scheduled Caste (SC)")}</option>
+                      <option value="ST">{t("cat_st", "Scheduled Tribe (ST)")}</option>
+                      <option value="Minority">{t("cat_minority", "Religious Minorities")}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="field-label">Gender</label>
+                    <label className="field-label">{t("label_gender", "Gender")} *</label>
                     <select
                       className="input-box"
                       value={profile.gender}
-                      onChange={(e) => setProfile({ ...profile, gender: e.target.value })}
+                      onChange={(e) => {
+                        setActiveArchetype("");
+                        setProfile({ ...profile, gender: e.target.value });
+                      }}
                       aria-label="Gender"
                     >
-                      <option value="male">Male</option>
-                      <option value="female">Female (1% Interest Rebate)</option>
-                      <option value="transgender">Transgender</option>
+                      <option value="male">{t("gender_male", "Male")}</option>
+                      <option value="female">{t("gender_female", "Female (Special Rebates & Stand-Up)")}</option>
+                      <option value="transgender">{t("gender_other", "Transgender / Third Gender")}</option>
                     </select>
                   </div>
                 </div>
@@ -312,22 +381,16 @@ export default function Home() {
                 <div style={{ marginBottom: "1rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
                     <label className="field-label" style={{ margin: 0 }}>
-                      Annual Family Income: <strong>₹{fmt(profile.annual_family_income)}</strong>
+                      {t("label_income", "Annual Family Income")}: <strong>₹{fmt(profile.annual_family_income)}</strong>
                     </label>
-                    {profile.annual_family_income > 500000 ? (
-                      <span className="chip chip-rose" style={{ fontSize: "0.7rem" }}>
-                        Exceeds ₹5L Cap
-                      </span>
-                    ) : (
-                      <span className="chip chip-emerald" style={{ fontSize: "0.7rem" }}>
-                        Eligible
-                      </span>
-                    )}
+                    <span className="chip chip-cyan" style={{ fontSize: "0.68rem" }}>
+                      Universal Access
+                    </span>
                   </div>
                   <input
                     type="range"
                     min={50000}
-                    max={1000000}
+                    max={1200000}
                     step={10000}
                     value={profile.annual_family_income}
                     onChange={(e) => {
@@ -338,21 +401,22 @@ export default function Home() {
                   />
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "3px" }}>
                     <span>₹50K</span>
-                    <span style={{ color: "var(--accent-emerald)", fontWeight: "700" }}>₹5.00L Statutory Ceiling</span>
-                    <span>₹10.0L</span>
+                    <span style={{ color: "var(--brand-accent)", fontWeight: "700" }}>PMEGP / MUDRA: No Limit</span>
+                    <span>₹12.0L</span>
                   </div>
                   
-                  {/* Item 14: Inline validation alert */}
-                  {profile.annual_family_income > 500000 && (
-                    <div className="field-error-msg">
-                      ⚠️ Income exceeds statutory limit of ₹5.00 Lakhs. NSFDC subsidized interest rates only apply to incomes ≤ ₹5.00L.
-                    </div>
-                  )}
+                  {/* Inline helpful guidance */}
+                  <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "4px", lineHeight: "1.4" }}>
+                    ℹ️ {profile.annual_family_income > 500000 
+                      ? t("income_notice_statutory", "Statutory income limits (≤ ₹5.00L) only apply to NSFDC/NBCFDC special concessional funds. Universal programs (PMEGP, MUDRA, Stand-Up India) have NO income cap.")
+                      : t("income_notice_unlimited", "Universal schemes (PMEGP, MUDRA, Stand-Up India) have NO income ceiling.")
+                    }
+                  </div>
                 </div>
 
                 {/* Credit Purpose */}
                 <div style={{ marginBottom: "1rem" }}>
-                  <label className="field-label">Credit Purpose</label>
+                  <label className="field-label">{t("label_project_type", "Proposed Project / Industry Sector")} *</label>
                   <select
                     className="input-box"
                     value={profile.project_type}
@@ -371,7 +435,7 @@ export default function Home() {
                 {/* Project Cost & Education */}
                 <div className="form-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "0.9rem" }}>
                   <div>
-                    <label className="field-label">Estimated Project Cost</label>
+                    <label className="field-label">{t("label_project_cost", "Estimated Project Cost")} *</label>
                     <input
                       type="number"
                       className={`input-box ${profile.estimated_project_cost <= 0 ? "input-error" : ""}`}
@@ -381,7 +445,7 @@ export default function Home() {
                         setProfile({ ...profile, estimated_project_cost: Number(e.target.value) });
                       }}
                       min={10000}
-                      max={5000000}
+                      max={10000000}
                       step={10000}
                       aria-label="Estimated Project Cost"
                     />
@@ -407,20 +471,23 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* State & District */}
+                {/* All-India State & District */}
                 <div className="form-grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "0.9rem" }}>
                   <div>
-                    <label className="field-label">State of Residence</label>
-                    <input
-                      type="text"
+                    <label className="field-label">{t("label_state", "State / UT of Operation")} *</label>
+                    <select
                       className="input-box"
                       value={profile.state}
                       onChange={(e) => setProfile({ ...profile, state: e.target.value })}
                       aria-label="State"
-                    />
+                    >
+                      {ALL_INDIA_STATES.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
                   </div>
                   <div>
-                    <label className="field-label">District</label>
+                    <label className="field-label">{t("label_district", "District / City")}</label>
                     <input
                       type="text"
                       className="input-box"
@@ -440,7 +507,7 @@ export default function Home() {
                       onChange={(e) => setProfile({ ...profile, is_differently_abled: e.target.checked })}
                       style={{ width: "18px", height: "18px" }}
                     />
-                    Differently Abled (Divyangjan — Special Subsidy)
+                    {t("label_differently_abled", "Differently-Abled (Divyangjan) Entrepreneur")}
                   </label>
                   <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.82rem", color: "var(--text-secondary)", cursor: "pointer", minHeight: "36px" }}>
                     <input
@@ -449,7 +516,7 @@ export default function Home() {
                       onChange={(e) => setProfile({ ...profile, is_shg_member: e.target.checked })}
                       style={{ width: "18px", height: "18px" }}
                     />
-                    Self-Help Group (SHG) Member
+                    {t("label_shg", "Active Member of Self-Help Group (SHG)")}
                   </label>
                   <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.82rem", color: "var(--text-secondary)", cursor: "pointer", minHeight: "36px" }}>
                     <input
@@ -458,7 +525,7 @@ export default function Home() {
                       onChange={(e) => setProfile({ ...profile, is_udyam_registered: e.target.checked })}
                       style={{ width: "18px", height: "18px" }}
                     />
-                    Udyam Registered Enterprise
+                    {t("label_udyam", "Udyam MSME Certificate Registered")}
                   </label>
                 </div>
 
@@ -468,7 +535,7 @@ export default function Home() {
                   className="btn-apex"
                   style={{ width: "100%", padding: "0.85rem" }}
                 >
-                  {loading ? "Evaluating Eligibility..." : "Match Concessional Schemes"}
+                  {loading ? t("btn_calculating", "Matching with National Schemes...") : t("btn_run_matching", "Run AI Scheme Matching")}
                 </button>
 
                 <div style={{
@@ -481,31 +548,53 @@ export default function Home() {
                   color: "var(--text-muted)",
                   lineHeight: "1.5"
                 }}>
-                  Disbursements are routed through State Channelizing Agencies (SCAs), Public Sector Banks, and Regional Rural Banks at concessional rates (4.0%–8.0% p.a.).
+                  Evaluates programs across MSME (PMEGP), Financial Services (MUDRA, Stand-Up India), Housing & Urban Affairs (PM SVANidhi), Skill Dev (PM Vishwakarma), Tribal Affairs (NSTFDC), Minority Affairs (NMDFC), and Social Justice (NSFDC, NBCFDC).
                 </div>
               </form>
 
               {/* Matched Scheme Cards */}
               <section aria-label="Evaluated Schemes">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
                   <h3 style={{ fontSize: "1.15rem", margin: 0, color: "var(--text-primary)", fontWeight: "800" }}>
-                    {hasSearched ? `Qualified Schemes (${matches.length})` : "Recommended Schemes"}
+                    {t("results_heading", "Matched Government Credit Schemes")} ({filteredMatches.length})
                   </h3>
-                  {matches.length > 0 && (
-                    <span className="chip chip-emerald">
-                      {matches.filter(m => m.eligibility_status === "Highly Eligible" || m.eligibility_status === "Eligible").length} Eligible
-                    </span>
-                  )}
+
+                  {/* Filter chips */}
+                  <div style={{ display: "flex", gap: "0.35rem" }}>
+                    <button
+                      onClick={() => setFilterType("all")}
+                      className={`chip ${filterType === "all" ? "chip-cyan" : ""}`}
+                      style={{ cursor: "pointer", border: "none", background: filterType === "all" ? undefined : "var(--bg-card)" }}
+                    >
+                      {t("filter_all", "All Schemes")}
+                    </button>
+                    <button
+                      onClick={() => setFilterType("high")}
+                      className={`chip ${filterType === "high" ? "chip-emerald" : ""}`}
+                      style={{ cursor: "pointer", border: "none", background: filterType === "high" ? undefined : "var(--bg-card)" }}
+                    >
+                      {t("filter_high_match", "High Match (≥ 80%)")}
+                    </button>
+                    <button
+                      onClick={() => setFilterType("subsidized")}
+                      className={`chip ${filterType === "subsidized" ? "chip-amber" : ""}`}
+                      style={{ cursor: "pointer", border: "none", background: filterType === "subsidized" ? undefined : "var(--bg-card)" }}
+                    >
+                      {t("filter_subsidized", "Government Subsidized")}
+                    </button>
+                  </div>
                 </div>
 
                 {loading && (
                   <div className="glass-panel" style={{ padding: "3rem", textAlign: "center", color: "var(--brand-accent)" }}>
-                    <div style={{ fontWeight: "700", fontSize: "1rem" }}>Evaluating eligibility against NSFDC guidelines...</div>
+                    <div style={{ fontWeight: "700", fontSize: "1rem" }}>
+                      {t("btn_calculating", "Matching with National Schemes...")}
+                    </div>
                   </div>
                 )}
 
-                {/* Item 11: Empty State Component */}
-                {!loading && hasSearched && matches.length === 0 && (
+                {/* Empty State */}
+                {!loading && hasSearched && filteredMatches.length === 0 && (
                   <div className="glass-panel" style={{
                     padding: "3rem 2rem",
                     textAlign: "center",
@@ -518,7 +607,7 @@ export default function Home() {
                       justifyContent: "center",
                       width: "64px",
                       height: "64px",
-                      borderRadius: "50%",
+                      borderRadius: "50",
                       background: "var(--status-warning-bg)",
                       color: "var(--status-warning)",
                       fontSize: "1.8rem",
@@ -527,34 +616,27 @@ export default function Home() {
                       📋
                     </div>
                     <h4 style={{ fontSize: "1.2rem", fontWeight: "800", color: "var(--text-primary)", marginBottom: "0.4rem" }}>
-                      No Matching Schemes Found
+                      No Matching Schemes Under Selected Filter
                     </h4>
                     <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", maxWidth: "460px", margin: "0 auto 1.25rem auto", lineHeight: "1.6" }}>
-                      {profile.annual_family_income > 500000
-                        ? `Your entered family income of ₹${fmt(profile.annual_family_income)} exceeds the statutory ceiling of ₹5,00,000 for NSFDC concessional lending.`
-                        : "No active schemes match this combination of project cost, purpose, and demographic criteria."}
+                      Try setting the filter to "All Schemes" or choose one of the pre-configured enterprise archetypes above.
                     </p>
                     <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
                       <button
-                        onClick={() => handleSelectArchetype(ARCHETYPES[0])}
+                        onClick={() => {
+                          setFilterType("all");
+                          handleSelectArchetype(ARCHETYPES[0]);
+                        }}
                         className="btn-apex"
                         style={{ padding: "0.6rem 1.25rem", fontSize: "0.82rem" }}
                       >
-                        Reset to Micro Retailer Profile
+                        Reset to PMEGP Manufacturing Profile
                       </button>
-                      <a
-                        href="tel:14566"
-                        className="chip chip-cyan"
-                        style={{ textDecoration: "none", fontSize: "0.82rem", padding: "0.6rem 1.2rem", borderRadius: "8px" }}
-                        title="Click to call National SC Helpline"
-                      >
-                        📞 Contact SC Helpline (14566)
-                      </a>
                     </div>
                   </div>
                 )}
 
-                {!loading && matches.map((match, i) => (
+                {!loading && filteredMatches.map((match, i) => (
                   <SchemeCard key={match.scheme.id} match={match} index={i} />
                 ))}
               </section>
@@ -570,7 +652,7 @@ export default function Home() {
 
       </main>
 
-      {/* Item 6 & 17 & 9: Institutional Footer with Clickable Phone, Email, and Zero Placeholder Copy */}
+      {/* Institutional Footer */}
       <footer style={{
         background: "var(--bg-surface)",
         borderTop: "1px solid var(--border-subtle)",
@@ -585,10 +667,10 @@ export default function Home() {
       }}>
         <div style={{ maxWidth: "960px", margin: "0 auto" }}>
           <div style={{ color: "var(--text-primary)", fontWeight: "800", fontSize: "0.95rem" }}>
-            Samarthya Setu — Scheduled Caste Concessional Channel Finance Platform
+            {t("portal_title", "Samarthya Setu")} — All-India Concessional & Subsidized Credit Discovery Platform
           </div>
           <div style={{ marginTop: "0.35rem", color: "var(--text-secondary)", fontSize: "0.78rem" }}>
-            National Scheduled Castes Finance and Development Corporation (NSFDC) • Ministry of Social Justice & Empowerment
+            Empowering Indian Entrepreneurs Across MSME, PM MUDRA, Stand-Up India, PM Vishwakarma, PM SVANidhi, NSFDC, NSTFDC, NBCFDC & NMDFC
           </div>
 
           {/* Direct Institutional Contacts Bar */}
@@ -604,52 +686,55 @@ export default function Home() {
             border: "1px solid var(--border-subtle)"
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <span>National SC Toll-Free Helpline:</span>
+              <span>{t("helpline", "National Helpline 14566")}:</span>
               <a
                 href="tel:14566"
                 style={{ color: "var(--brand-accent)", fontWeight: "800", textDecoration: "none" }}
                 title="Call 14566"
               >
-                14566
+                14566 (Toll-Free)
               </a>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <span>Corporate Helpdesk:</span>
+              <span>PMEGP KVIC Helpdesk:</span>
               <a
-                href="tel:011-22054300"
+                href="https://www.kviconline.gov.in"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{ color: "var(--brand-accent)", fontWeight: "700", textDecoration: "none" }}
-                title="Call 011-22054300"
               >
-                011-22054300
+                kviconline.gov.in
               </a>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <span>Support Desk:</span>
+              <span>PM MUDRA:</span>
               <a
-                href="mailto:support@samarthya-setu.gov.in"
+                href="https://www.mudra.org.in"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{ color: "var(--brand-accent)", fontWeight: "700", textDecoration: "none" }}
-                title="Email Support"
               >
-                support@samarthya-setu.gov.in
+                mudra.org.in
               </a>
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <span>Grievances:</span>
+              <span>Stand-Up India:</span>
               <a
-                href="mailto:grievance@nsfdc.nic.in"
+                href="https://www.standupmitra.in"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{ color: "var(--brand-accent)", textDecoration: "none" }}
-                title="Email Grievance Cell"
               >
-                grievance@nsfdc.nic.in
+                standupmitra.in
               </a>
             </div>
           </div>
 
           <div style={{ fontSize: "0.72rem", color: "var(--text-faint)", lineHeight: "1.6" }}>
-            Statutory Income Ceiling: ≤ ₹5.00 Lakhs per annum | Concessional Lending Rate: 4.0% – 8.0% p.a. | Channel Partner Allocation via SCAs, PSBs & RRBs.
+            All-India Central & State Government Lending Portals • Concessional Rates: 4.0% – 8.0% p.a. • Up to 35% Capital Subsidies • Channel Partner Network via SCAs, PSBs & RRBs.
           </div>
         </div>
       </footer>
