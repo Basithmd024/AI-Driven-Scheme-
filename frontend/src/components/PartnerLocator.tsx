@@ -11,6 +11,17 @@ const CATEGORIES = [
   { value: "RRB", label: "Regional Rural Banks (RRBs)" },
 ];
 
+const POPULAR_HUBS = [
+  { name: "Delhi NCR", lat: 28.6139, lng: 77.2090 },
+  { name: "Mumbai", lat: 19.0760, lng: 72.8777 },
+  { name: "Bengaluru", lat: 12.9716, lng: 77.5946 },
+  { name: "Hyderabad", lat: 17.3850, lng: 78.4867 },
+  { name: "Chennai", lat: 13.0827, lng: 80.2707 },
+  { name: "Kolkata", lat: 22.5726, lng: 88.3639 },
+  { name: "Lucknow", lat: 26.8467, lng: 80.9462 },
+  { name: "Jaipur", lat: 26.9124, lng: 75.7873 },
+];
+
 export const PartnerLocator: React.FC = () => {
   const { t } = useLanguage();
   const [partners, setPartners] = useState<ChannelPartner[]>([]);
@@ -19,6 +30,7 @@ export const PartnerLocator: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
   const [activeOnly, setActiveOnly] = useState<boolean>(false);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocationLabel, setUserLocationLabel] = useState<string | null>(null);
   const [locating, setLocating] = useState<boolean>(false);
   const [geoError, setGeoError] = useState<string | null>(null);
   const [selectedPartner, setSelectedPartner] = useState<ChannelPartner | null>(null);
@@ -27,6 +39,7 @@ export const PartnerLocator: React.FC = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const userMarkerRef = useRef<any>(null);
 
   const fetchPartners = async () => {
     setLoading(true);
@@ -37,6 +50,8 @@ export const PartnerLocator: React.FC = () => {
         active_only: activeOnly,
         user_lat: userCoords?.lat,
         user_lng: userCoords?.lng,
+        latitude: userCoords?.lat,
+        longitude: userCoords?.lng,
         max_distance_km: userCoords ? 500 : undefined,
       });
       setPartners(data);
@@ -51,28 +66,101 @@ export const PartnerLocator: React.FC = () => {
     fetchPartners();
   }, [stateFilter, categoryFilter, activeOnly, userCoords]);
 
-  const handleGeolocate = () => {
-    if (!navigator.geolocation) {
-      setGeoError("Geolocation is not supported by your browser");
-      return;
+  // Set specific location and fly map
+  const applyLocation = (lat: number, lng: number, label: string) => {
+    setUserCoords({ lat, lng });
+    setUserLocationLabel(label);
+    setGeoError(null);
+    setLocating(false);
+
+    if (leafletMapRef.current) {
+      try {
+        leafletMapRef.current.flyTo([lat, lng], 10, { duration: 1.2 });
+      } catch (e) {}
     }
+  };
+
+  // Robust Geolocation with IP Fallback & Hub options
+  const handleGeolocate = async () => {
     setLocating(true);
     setGeoError(null);
+
+    const tryIpFallback = async () => {
+      try {
+        const res = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3500) });
+        if (res.ok) {
+          const ipData = await res.json();
+          if (ipData && typeof ipData.latitude === "number" && typeof ipData.longitude === "number") {
+            const cityName = ipData.city || ipData.region || "Network IP";
+            applyLocation(ipData.latitude, ipData.longitude, `${cityName} (via Network IP)`);
+            return true;
+          }
+        }
+      } catch (e) {
+        console.warn("IP Geolocation attempt 1 failed", e);
+      }
+
+      try {
+        const res2 = await fetch("https://ipwho.is/", { signal: AbortSignal.timeout(3500) });
+        if (res2.ok) {
+          const d2 = await res2.json();
+          if (d2.success && typeof d2.latitude === "number" && typeof d2.longitude === "number") {
+            const cityName = d2.city || "Network Location";
+            applyLocation(d2.latitude, d2.longitude, `${cityName} (via Network IP)`);
+            return true;
+          }
+        }
+      } catch (e2) {
+        console.warn("IP Geolocation attempt 2 failed", e2);
+      }
+
+      return false;
+    };
+
+    if (!navigator.geolocation) {
+      const ok = await tryIpFallback();
+      if (!ok) {
+        setGeoError(t("locator_geo_unsupported", "Browser GPS not supported. Please pick your city below or click on the map."));
+        setLocating(false);
+      }
+      return;
+    }
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setLocating(false);
+        applyLocation(pos.coords.latitude, pos.coords.longitude, "Your Current GPS Location");
       },
-      (err) => {
-        console.warn("Geolocation failed", err);
-        setGeoError("Location access denied. Showing All-India network.");
-        setLocating(false);
+      async (err) => {
+        console.warn("Browser GPS failed, attempting IP fallback...", err);
+        const ok = await tryIpFallback();
+        if (!ok) {
+          setGeoError(
+            t(
+              "locator_geo_denied",
+              "Location access was blocked or timed out. Click a city below or tap anywhere on the map to locate branches nearby!"
+            )
+          );
+          setLocating(false);
+        }
       },
-      { timeout: 8000 }
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
     );
   };
 
-  // Robust Leaflet Map Initialization with Retries
+  const handleClearLocation = () => {
+    setUserCoords(null);
+    setUserLocationLabel(null);
+    setGeoError(null);
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
+    if (leafletMapRef.current) {
+      leafletMapRef.current.setView([22.5937, 79.9629], 5);
+    }
+  };
+
+  // Robust Leaflet Map Initialization with Retries & Click Listener
   useEffect(() => {
     if (typeof window === "undefined" || !mapRef.current) return;
     if (leafletMapRef.current) return;
@@ -100,6 +188,11 @@ export const PartnerLocator: React.FC = () => {
           attribution: "&copy; OpenStreetMap contributors",
           maxZoom: 18,
         }).addTo(map);
+
+        // Click on map to set custom location point
+        map.on("click", (e: any) => {
+          applyLocation(e.latlng.lat, e.latlng.lng, `Pinned (${e.latlng.lat.toFixed(2)}°, ${e.latlng.lng.toFixed(2)}°)`);
+        });
 
         leafletMapRef.current = map;
         setMapReady(true);
@@ -129,10 +222,43 @@ export const PartnerLocator: React.FC = () => {
     const L = (window as any).L;
     if (!L) return;
 
-    // Remove existing markers
+    // Remove existing partner markers
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
+    // Render User Location Beacon
+    if (userCoords) {
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+      }
+      const userIcon = L.divIcon({
+        className: "user-location-beacon",
+        html: `
+          <div style="position:relative; width:34px; height:34px; display:flex; align-items:center; justify-content:center;">
+            <div style="position:absolute; width:100%; height:100%; border-radius:50%; background:rgba(37,99,235,0.35); animation:pulse 1.8s infinite ease-out;"></div>
+            <div style="width:20px; height:20px; border-radius:50%; background:#2563eb; border:3px solid #ffffff; box-shadow:0 0 14px rgba(37,99,235,0.9); display:flex; align-items:center; justify-content:center; color:white; font-size:10px; font-weight:bold;">📍</div>
+          </div>
+        `,
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+      });
+
+      userMarkerRef.current = L.marker([userCoords.lat, userCoords.lng], {
+        icon: userIcon,
+        zIndexOffset: 1000,
+      })
+        .addTo(leafletMapRef.current)
+        .bindPopup(`
+          <div style="font-family: inherit; font-size: 12px; font-weight: 700; color: #1e3a8a;">
+            📍 ${userLocationLabel || "Your Selected Location"}
+          </div>
+        `);
+    } else if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
+
+    // Render Partner Markers
     partners.forEach((partner) => {
       const isSuspended = partner.status === "suspended";
       const markerColor = isSuspended ? "#ef4444" : "#10b981";
@@ -141,30 +267,33 @@ export const PartnerLocator: React.FC = () => {
         className: "custom-map-marker",
         html: `<div style="
           background: ${markerColor};
-          width: 22px;
-          height: 22px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
           border: 2px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.35);
           display: flex;
           align-items: center;
           justify-content: center;
           color: white;
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 800;
         ">${partner.category[0]}</div>`,
-        iconSize: [22, 22],
-        iconAnchor: [11, 11],
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
       });
+
+      const distInfo = partner.distance_km !== undefined ? `<strong>Distance:</strong> ${partner.distance_km.toFixed(1)} km<br/>` : "";
 
       const marker = L.marker([partner.latitude, partner.longitude], { icon: customIcon })
         .addTo(leafletMapRef.current)
         .bindPopup(`
-          <div style="font-family: inherit; font-size: 12px; color: #1e293b;">
-            <strong>${partner.name}</strong><br/>
-            <span style="color: #64748b;">${partner.category} • ${partner.city}, ${partner.state}</span><br/>
+          <div style="font-family: inherit; font-size: 12px; color: #1e293b; max-width: 220px;">
+            <strong style="font-size: 13px; color: #0f172a;">${partner.name}</strong><br/>
+            <span style="color: #64748b; font-size: 11px;">${partner.category} • ${partner.city}, ${partner.state}</span><br/>
+            ${distInfo}
             <strong>NPA Rate:</strong> ${partner.npa_rate}% | <strong>TAT:</strong> ${partner.avg_disbursement_days}d<br/>
-            ${isSuspended ? "<span style=\"color: #ef4444; font-weight: 700;\">Suspended (>5% NPA)</span>" : "<span style=\"color: #10b981; font-weight: 700;\">Active Channel</span>"}
+            ${isSuspended ? "<span style='color: #ef4444; font-weight: 700;'>Suspended (>5% NPA)</span>" : "<span style='color: #10b981; font-weight: 700;'>Active Channel</span>"}
           </div>
         `);
 
@@ -172,13 +301,28 @@ export const PartnerLocator: React.FC = () => {
       markersRef.current.push(marker);
     });
 
-    if (partners.length > 0 && markersRef.current.length > 0) {
+    // Auto fit bounds only if user hasn't explicitly localized
+    if (!userCoords && partners.length > 0 && markersRef.current.length > 0) {
       const group = L.featureGroup(markersRef.current);
       try {
-        leafletMapRef.current.fitBounds(group.getBounds().pad(0.15));
+        leafletMapRef.current.fitBounds(group.getBounds().pad(0.12));
       } catch (e) {}
     }
-  }, [partners, mapReady]);
+  }, [partners, mapReady, userCoords, userLocationLabel]);
+
+  const handleSelectPartner = (p: ChannelPartner) => {
+    setSelectedPartner(p);
+    if (leafletMapRef.current) {
+      leafletMapRef.current.flyTo([p.latitude, p.longitude], 12, { duration: 1.2 });
+      const target = markersRef.current.find((m) => {
+        const ll = m.getLatLng();
+        return Math.abs(ll.lat - p.latitude) < 0.001 && Math.abs(ll.lng - p.longitude) < 0.001;
+      });
+      if (target) {
+        target.openPopup();
+      }
+    }
+  };
 
   const activeCount = partners.filter((p) => p.status === "active").length;
   const suspendedCount = partners.filter((p) => p.status === "suspended").length;
@@ -201,20 +345,96 @@ export const PartnerLocator: React.FC = () => {
           </div>
         </div>
 
-        <button
-          onClick={handleGeolocate}
-          disabled={locating}
-          className="btn-apex"
-          style={{ padding: "0.65rem 1.25rem", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem", minHeight: "42px" }}
-        >
-          <span>📍</span>
-          <span>{locating ? t("locator_locating", "Locating...") : t("locator_locate_me", "Locate Near Me")}</span>
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
+          {userCoords && (
+            <button
+              onClick={handleClearLocation}
+              className="btn-secondary"
+              style={{ padding: "0.55rem 0.9rem", fontSize: "0.78rem", borderRadius: "8px" }}
+            >
+              ✖ {t("locator_reset_view", "Reset View")}
+            </button>
+          )}
+
+          <button
+            onClick={handleGeolocate}
+            disabled={locating}
+            className="btn-apex"
+            style={{ padding: "0.65rem 1.25rem", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "0.4rem", minHeight: "42px" }}
+          >
+            <span>📍</span>
+            <span>{locating ? t("locator_locating", "Locating Nearby...") : t("locator_locate_me", "Locate Near Me")}</span>
+          </button>
+        </div>
       </div>
 
+      {/* Active Location Banner */}
+      {userCoords && (
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          background: "rgba(14, 165, 233, 0.12)",
+          border: "1.5px solid rgba(14, 165, 233, 0.4)",
+          padding: "0.65rem 1rem",
+          borderRadius: "8px",
+          marginBottom: "1rem",
+          fontSize: "0.8rem"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "1rem" }}>📍</span>
+            <span style={{ color: "var(--text-primary)" }}>
+              <strong>{t("locator_active_loc", "Proximity Radar Active")}:</strong> {userLocationLabel}
+            </span>
+            <span className="chip chip-cyan" style={{ fontSize: "0.68rem" }}>
+              {partners.length} {t("locator_channels_nearby", "Channels Sorted by Distance")}
+            </span>
+          </div>
+
+          <button
+            onClick={handleClearLocation}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--brand-accent)",
+              cursor: "pointer",
+              fontWeight: "700",
+              fontSize: "0.75rem",
+              textDecoration: "underline"
+            }}
+          >
+            {t("locator_show_all", "Show All-India")}
+          </button>
+        </div>
+      )}
+
+      {/* Geolocation Warning & Quick Hub Selector */}
       {geoError && (
-        <div className="field-error-msg" style={{ marginBottom: "1rem", padding: "0.5rem 0.8rem", borderRadius: "6px" }}>
-          ⚠️ {geoError}
+        <div style={{
+          background: "rgba(245, 158, 11, 0.12)",
+          border: "1px solid rgba(245, 158, 11, 0.3)",
+          padding: "0.75rem 1rem",
+          borderRadius: "8px",
+          marginBottom: "1rem"
+        }}>
+          <div style={{ fontSize: "0.8rem", color: "var(--text-primary)", marginBottom: "0.5rem", fontWeight: "600" }}>
+            ⚠️ {geoError}
+          </div>
+          <div style={{ fontSize: "0.74rem", color: "var(--text-secondary)", marginBottom: "0.35rem" }}>
+            {t("locator_quick_cities", "Quick-select your region to view nearby institutional branches:")}
+          </div>
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+            {POPULAR_HUBS.map((h) => (
+              <button
+                key={h.name}
+                onClick={() => applyLocation(h.lat, h.lng, `${h.name} Region`)}
+                className="chip chip-purple"
+                style={{ cursor: "pointer", fontSize: "0.72rem", padding: "0.3rem 0.6rem", border: "none" }}
+              >
+                📍 {h.name}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -317,6 +537,22 @@ export const PartnerLocator: React.FC = () => {
             }}
           />
 
+          <div style={{
+            position: "absolute",
+            bottom: "10px",
+            left: "10px",
+            zIndex: 10,
+            background: "rgba(15, 23, 42, 0.85)",
+            backdropFilter: "blur(6px)",
+            color: "#f8fafc",
+            fontSize: "0.7rem",
+            padding: "0.35rem 0.7rem",
+            borderRadius: "6px",
+            border: "1px solid rgba(255, 255, 255, 0.15)"
+          }}>
+            💡 {t("locator_map_tip", "Tip: Click anywhere on the map to find nearby partners")}
+          </div>
+
           {!mapReady && (
             <div style={{
               position: "absolute",
@@ -354,7 +590,7 @@ export const PartnerLocator: React.FC = () => {
               <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🏛️</div>
               <div style={{ fontWeight: "800", color: "var(--text-primary)" }}>No Intermediaries Found</div>
               <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "4px" }}>
-                Try switching the State or Category filter to "All" to view channels nationwide.
+                Try switching the State or Category filter to "All" or resetting the proximity radius.
               </div>
             </div>
           )}
@@ -367,7 +603,7 @@ export const PartnerLocator: React.FC = () => {
               <div
                 key={p.id}
                 className="glass-panel"
-                onClick={() => setSelectedPartner(p)}
+                onClick={() => handleSelectPartner(p)}
                 style={{
                   padding: "1.1rem",
                   borderRadius: "10px",
@@ -389,8 +625,8 @@ export const PartnerLocator: React.FC = () => {
                         {p.category}
                       </span>
                       {p.distance_km !== undefined && (
-                        <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
-                          📍 {p.distance_km.toFixed(1)} {t("locator_km_away", "km away")}
+                        <span className="chip chip-emerald" style={{ fontSize: "0.68rem", fontWeight: "700" }}>
+                          🎯 {p.distance_km.toFixed(1)} {t("locator_km_away", "km away")}
                         </span>
                       )}
                     </div>
@@ -444,7 +680,12 @@ export const PartnerLocator: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Status Message */}
+                {/* Routing Recommendation or Status Message */}
+                {p.routing_recommendation && (
+                  <div style={{ fontSize: "0.72rem", color: "var(--brand-accent)", fontWeight: "700", marginBottom: "0.35rem" }}>
+                    {p.routing_recommendation}
+                  </div>
+                )}
                 <div style={{ fontSize: "0.74rem", color: isSuspended ? "var(--status-danger)" : "var(--status-active)", marginBottom: "0.65rem" }}>
                   {p.status_message}
                 </div>
@@ -452,7 +693,7 @@ export const PartnerLocator: React.FC = () => {
                 {/* Address & Direct Actions */}
                 <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", borderTop: "1px solid var(--border-subtle)", paddingTop: "0.5rem" }}>
                   <div style={{ marginBottom: "0.4rem" }}>🏢 {p.address}</div>
-                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
                     {p.phone && (
                       <a
                         href={`tel:${p.phone}`}
@@ -471,6 +712,16 @@ export const PartnerLocator: React.FC = () => {
                         ✉️ {p.email}
                       </a>
                     )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectPartner(p);
+                      }}
+                      className="chip chip-purple"
+                      style={{ border: "none", cursor: "pointer", fontSize: "0.72rem", padding: "0.25rem 0.55rem" }}
+                    >
+                      🗺️ Focus on Map
+                    </button>
                   </div>
                 </div>
               </div>

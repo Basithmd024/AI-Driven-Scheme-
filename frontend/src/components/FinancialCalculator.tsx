@@ -55,11 +55,14 @@ export const FinancialCalculator: React.FC = () => {
         moratorium_months: moratorium,
         monthly_emi_after_moratorium: emi,
         moratorium_monthly_interest: netLoan * monthlyRate,
-        total_concessional_interest: totalRepay - netLoan,
+        total_concessional_interest: Math.max(0, totalRepay - netLoan),
         total_repayment_amount: totalRepay,
+        total_net_outflow: totalRepay,
         commercial_monthly_emi: commEmi,
-        total_commercial_interest: commTotal - netLoan,
+        total_commercial_interest: Math.max(0, commTotal - netLoan),
+        total_commercial_interest_benchmark: Math.max(0, commTotal - netLoan),
         beneficiary_savings_amount: Math.max(0, commTotal - totalRepay),
+        direct_beneficiary_savings: Math.max(0, commTotal - totalRepay),
         amortization_schedule: Array.from({ length: Math.min(12, tenure * 12) }, (_, i) => ({
           month: i + 1,
           is_moratorium: i < moratorium,
@@ -79,7 +82,11 @@ export const FinancialCalculator: React.FC = () => {
     triggerCalculate();
   }, [projectCost, rate, tenure, moratorium, promoter, commercialRate]);
 
-  const fmt = (n: number) => Math.round(n).toLocaleString("en-IN");
+  const fmt = (n: any) => {
+    const num = Number(n);
+    if (isNaN(num) || !isFinite(num)) return "0";
+    return Math.round(num).toLocaleString("en-IN");
+  };
   const totalMonths = tenure * 12;
   const repaymentMonths = totalMonths - moratorium;
 
@@ -254,7 +261,7 @@ export const FinancialCalculator: React.FC = () => {
                   </span>
                 </div>
                 <div style={{ fontSize: "1.8rem", fontWeight: "900", color: "var(--status-active)" }}>
-                  ₹{fmt(result.beneficiary_savings_amount)}
+                  ₹{fmt(result.beneficiary_savings_amount ?? result.direct_beneficiary_savings)}
                 </div>
                 <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginTop: "0.2rem" }}>
                   {t("calc_savings_desc", "Saved over full loan lifecycle compared to 13.5% commercial bank financing.")}
@@ -308,7 +315,7 @@ export const FinancialCalculator: React.FC = () => {
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-secondary)", borderTop: "1px solid var(--border-subtle)", paddingTop: "0.45rem" }}>
                     <span>{t("calc_net_outflow", "Total Net Outflow")}:</span>
-                    <strong style={{ color: "var(--brand-accent)" }}>₹{fmt(result.total_repayment_amount)}</strong>
+                    <strong style={{ color: "var(--brand-accent)" }}>₹{fmt(result.total_repayment_amount ?? result.total_net_outflow)}</strong>
                   </div>
                 </div>
               </div>

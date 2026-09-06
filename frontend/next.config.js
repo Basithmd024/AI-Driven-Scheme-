@@ -6,22 +6,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.watchOptions = {
-        poll: false,
-        followSymlinks: false,
-        ignored: [
-          "**/node_modules/**",
-          "**/.git/**",
-          "**/.next/**",
-          "**/backend/**",
-          "**/.system_generated/**",
-        ],
-      };
-    }
-    return config;
-  },
   async rewrites() {
     return [
       {

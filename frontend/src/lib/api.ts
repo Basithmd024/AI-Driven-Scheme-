@@ -81,9 +81,13 @@ export interface EMIResponse {
   monthly_emi_after_moratorium: number;
   moratorium_monthly_interest: number;
   total_concessional_interest: number;
-  total_commercial_interest_benchmark: number;
-  direct_beneficiary_savings: number;
+  total_repayment_amount: number;
   total_net_outflow: number;
+  commercial_monthly_emi?: number;
+  total_commercial_interest?: number;
+  total_commercial_interest_benchmark: number;
+  beneficiary_savings_amount: number;
+  direct_beneficiary_savings: number;
   amortization_schedule: AmortizationItem[];
 }
 
@@ -754,15 +758,46 @@ export async function matchSchemes(profile: EntrepreneurProfile): Promise<Scheme
   }
 }
 
+export function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 10) / 10;
+}
+
 export async function calculateEMI(req: EMIRequest): Promise<EMIResponse> {
   try {
-    const res = await fetch(`${API_BASE}/calculator/simulate`, {
+    let res = await fetch(`${API_BASE}/calculator/calculate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(req),
     });
+    if (!res.ok) {
+      res = await fetch(`${API_BASE}/calculator/simulate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req),
+      });
+    }
     if (!res.ok) throw new Error("API call failed");
-    return await res.json();
+    const data = await res.json();
+    const savings = Number(data.beneficiary_savings_amount ?? data.direct_beneficiary_savings ?? 0);
+    const outflow = Number(data.total_repayment_amount ?? data.total_net_outflow ?? 0);
+    const commTotal = Number(data.total_commercial_interest ?? data.total_commercial_interest_benchmark ?? 0);
+    return {
+      ...data,
+      beneficiary_savings_amount: savings,
+      direct_beneficiary_savings: savings,
+      total_repayment_amount: outflow,
+      total_net_outflow: outflow,
+      total_commercial_interest: commTotal,
+      total_commercial_interest_benchmark: commTotal,
+    };
   } catch (err) {
     const promoterAmount = req.project_cost * (req.promoter_share_pct / 100);
     const netLoan = req.project_cost - promoterAmount;
@@ -789,6 +824,7 @@ export async function calculateEMI(req: EMIRequest): Promise<EMIResponse> {
       (Math.pow(1 + rCommercial, repaymentMonths) - 1);
     const commTotal = (netLoan * rCommercial * req.moratorium_months) + (commEMI * repaymentMonths - netLoan);
     const savings = Math.max(0, commTotal - totalConcessionalInterest);
+    const totalOutflow = Math.round(netLoan + totalConcessionalInterest + promoterAmount);
 
     const schedule: AmortizationItem[] = [];
     let balance = netLoan;
@@ -831,9 +867,13 @@ export async function calculateEMI(req: EMIRequest): Promise<EMIResponse> {
       monthly_emi_after_moratorium: Math.round(monthlyEMI),
       moratorium_monthly_interest: Math.round(moratoriumInterest),
       total_concessional_interest: Math.round(totalConcessionalInterest),
+      total_repayment_amount: totalOutflow,
+      total_net_outflow: totalOutflow,
+      commercial_monthly_emi: Math.round(commEMI),
+      total_commercial_interest: Math.round(commTotal),
       total_commercial_interest_benchmark: Math.round(commTotal),
+      beneficiary_savings_amount: Math.round(savings),
       direct_beneficiary_savings: Math.round(savings),
-      total_net_outflow: Math.round(netLoan + totalConcessionalInterest + promoterAmount),
       amortization_schedule: schedule,
     };
   }
@@ -845,12 +885,26 @@ export async function locatePartners(filters: {
   active_only?: boolean;
   latitude?: number;
   longitude?: number;
+  user_lat?: number;
+  user_lng?: number;
+  max_distance_km?: number;
 }): Promise<ChannelPartner[]> {
+  const uLat = filters.user_lat ?? filters.latitude;
+  const uLng = filters.user_lng ?? filters.longitude;
+
   try {
+    const payload = {
+      state: filters.state === "All" ? undefined : filters.state,
+      category: filters.category === "All" ? undefined : filters.category,
+      active_only: filters.active_only ?? false,
+      user_lat: uLat,
+      user_lng: uLng,
+      max_distance_km: filters.max_distance_km,
+    };
     const res = await fetch(`${API_BASE}/partners/locate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(filters),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error("Failed to fetch partners");
     return await res.json();
@@ -864,6 +918,21 @@ export async function locatePartners(filters: {
     }
     if (filters.active_only) {
       fallback = fallback.filter((p) => p.status === "active" && p.npa_rate <= 5.0);
+    }
+    if (uLat !== undefined && uLng !== undefined) {
+      fallback = fallback.map((p) => {
+        const dist = calculateDistanceKm(uLat, uLng, p.latitude, p.longitude);
+        return {
+          ...p,
+          distance_km: dist,
+          routing_recommendation:
+            dist < 25
+              ? "⚡ Priority Direct Routing (<25km)"
+              : dist < 100
+              ? "🚗 Nearby Regional Branch (<100km)"
+              : "🏛 State/Inter-District Center",
+        };
+      }).sort((a, b) => (a.distance_km ?? 9999) - (b.distance_km ?? 9999));
     }
     return fallback;
   }

@@ -1,114 +1,185 @@
-# Samarthya Setu: AI-Driven Concessional Channel Finance & Scheme Matching Platform
+# Samarthya Setu (सामर्थ्य सेतु)
+### *All-India AI-Driven Scheme Matching & Concessional Channel Finance Platform*
 
-An institutional-grade decision support and credit matching platform engineered for Scheduled Caste (SC) entrepreneurs and marginalized beneficiaries, aligning with the channel finance mandates of the **National Scheduled Castes Finance & Development Corporation (NSFDC)** under the **Ministry of Social Justice & Empowerment (MoSJE)**, Government of India.
-
----
-
-## Executive Summary
-
-Traditional welfare and concessional credit mechanisms often face delivery bottlenecks due to fragmented eligibility rules, lack of localized channel partner visibility, and complex debt servicing schedules. **Samarthya Setu** resolves these challenges by providing an automated, transparent, and user-centric platform that:
-
-1. **Enforces Statutory Constraints**: Applies the statutory annual family income ceiling (<= INR 5.00 Lakhs) and calculates exact promoter contribution margins (5% to 10%) and concessional coverage (up to 90%).
-2. **Simulates Debt Servicing & Moratoria**: Computes EMI schedules, grace period interest behavior, and quantifies total interest savings against commercial banking benchmarks (13.5% p.a.).
-3. **Optimizes Channel Partner Routing**: Geolocation-based routing to authorized State Channelizing Agencies (SCAs), Public Sector Banks (PSBs), Regional Rural Banks (RRBs), and NBFC-MFIs, backed by Non-Performing Asset (NPA) and fund utilization risk filters.
-4. **Delivers a Zero Static Colors Interface**: 100% dynamic CSS variable design system supporting instantaneous, pure switching between Dark Mode and Light Mode.
+[![Next.js 14](https://img.shields.io/badge/Next.js-14.2-black?style=flat&logo=next.js)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat&logo=python)](https://www.python.org/)
+[![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-199900?style=flat&logo=leaflet)](https://leafletjs.com/)
+[![Languages](https://img.shields.io/badge/Languages-7_Indian_Languages-orange?style=flat)](#multilingual-support)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-## Core System Modules
+## Executive Overview
 
-### 1. Scheme Matching Engine
-- **Income Ceiling Gate**: Strictly disallows applicants with annual family income exceeding INR 5,00,000 as per NSFDC criteria.
-- **Multi-Attribute Scoring**: Weights applicant demographics, business sectors, target project costs, and locations against scheme guidelines.
-- **Automated Document Checklist**: Dynamically compiles mandatory proof requirements (SC caste certificates, revenue income certificates, project reports, admission proofs).
-- **Application Routing**: Direct links to official portals (NSFDC Scheme Portal and PM-SURAJ National Portal).
+**Samarthya Setu (सामर्थ्य सेतु)** is a high-availability, unified digital public infrastructure (DPI) platform engineered to dismantle informational and institutional barriers for Indian micro-entrepreneurs, artisans, and disadvantaged groups. 
 
-### 2. Concessional Financial Calculator & Simulator
-- **Interest Rate Range**: Concessional rates spanning 4.0% p.a. (Micro-Credit & Mahila Samriddhi) to 8.0% p.a. (Overseas Education & Term Loans).
-- **Moratorium Engine**: Models grace periods (up to 12 months) where principal repayment is deferred during enterprise gestation.
-- **Commercial Benchmark Comparative**: Computes exact monetary savings relative to prevailing market lending rates (13.5% p.a.).
+Instead of searching dozens of disparate government websites, entrepreneurs across all 28 States and 8 Union Territories can discover, verify, simulate, and route their loan applications across flagship Central Ministries and Apex Finance Corporations in seconds.
 
-### 3. Channel Partner Locator
-- **Geospatial Proximity**: Leverages HTML5 Geolocation API with Haversine distance calculations across variable radii (5 km, 15 km, 25 km, 50 km).
-- **Institutional Coverage**: Catalogs SCAs, PSBs (e.g., State Bank of India, Punjab National Bank, Canara Bank), and RRBs.
-- **Health & Governance Safeguards**:
-  - Automatically flags and isolates institutions with NPA rates >= 5.0%.
-  - Filters for active fund utilization rates (>= 70.0%).
-
-### 4. Dynamic Design System (Zero Static Colors)
-- All color values across components, Leaflet interactive maps, navigation elements, inputs, and score indicators are strictly mapped to semantic CSS tokens (`var(--...)`).
-- Seamless transitions between high-contrast Dark Command Mode and accessible Light Mode without hardcoded color artifacts.
+```mermaid
+graph TD
+    User([Beneficiary / Entrepreneur]) --> Frontend[Next.js 14 Glassmorphic Portal]
+    Frontend --> Matcher[AI Recommender Engine]
+    Frontend --> Sim[Concessional EMI Simulator]
+    Frontend --> Radar[Geospatial Partner Radar]
+    
+    Matcher --> MultiPortal[(Multi-Ministry Catalog)]
+    MultiPortal --> MSME[Ministry of MSME: PMEGP, CGTMSE]
+    MultiPortal --> MoF[Ministry of Finance: MUDRA, Stand-Up India]
+    MultiPortal --> MoSJE[Ministry of Social Justice: NSFDC, NBCFDC]
+    MultiPortal --> MoTA[Ministry of Tribal Affairs: NSTFDC]
+    MultiPortal --> MoMA[Ministry of Minority Affairs: NMDFC]
+    MultiPortal --> MoHUA[Ministry of Housing & Urban Affairs: PM SVANidhi]
+    
+    Radar --> GPS[HTML5 GPS / Network IP Fallback]
+    Radar --> OSM[OpenStreetMap / Leaflet Engine]
+    Radar --> Partners[(100+ Verified SCAs, PSBs & RRBs)]
+```
 
 ---
 
-## Technology Stack
+## Core Capabilities
 
-| Layer | Technology | Key Capabilities |
+### 1. Multi-Ministry All-India Scheme Engine
+- **Cross-Portal Aggregation**: Consolidates schemes from the Ministry of MSME, Ministry of Finance, Ministry of Social Justice & Empowerment, Ministry of Tribal Affairs, Ministry of Minority Affairs, and MoHUA.
+- **Demographic Inclusivity**: Fully supports entrepreneurs across **General, OBC, SC, ST, Minorities, and Women-led** enterprises.
+- **Deep Eligibility Reasoning**: Analyzes caste criteria, annual family income ceilings (including the ₹3L-₹5L national benchmark), educational qualification, project capital limits, and statutory documentation requirements.
+- **Transparent Direct Links**: Every scheme provides verified direct links to official government portals (e.g. *udyamimitra.in*, *kviconline.gov.in*, *standupmitra.in*, *nsfdc.nic.in*, *pmsvanidhi.mohua.gov.in*).
+
+### 2. Native Multilingual Localization (7 Languages)
+Seamless, instant language switching without page reload across 7 major Indian languages:
+- **English** (Default)
+- **हिन्दी** (Hindi)
+- **తెలుగు** (Telugu)
+- **தமிழ்** (Tamil)
+- **ಕನ್ನಡ** (Kannada)
+- **मराठी** (Marathi)
+- **বাংলা** (Bengali)
+
+### 3. Concessional EMI & Moratorium Simulator
+- **True Moratorium Phasing**: Accurately models interest-only grace periods (0 to 18 months) during enterprise gestation.
+- **Commercial Bank Comparative**: Calculates exact lifecycle rupee savings compared to the standard 13.5% commercial bank lending benchmark.
+- **Defensive Math Engine**: Zero-NaN mathematical formatting safeguards ensure uninterrupted financial forecasting under all edge cases and offline modes.
+- **Interactive Visual Timeline**: Visual bar showing moratorium vs. amortization phases plus month-by-month repayment schedule.
+
+### 4. Geospatial Channel Partner Radar & Branch Locator
+- **Multi-Tiered Geolocation**:
+  1. High-speed browser GPS with battery/desktop safety timeouts.
+  2. Automatic network IP-based fallback if GPS access is blocked or unavailable.
+  3. One-click quick-select regional hubs (**Delhi NCR, Mumbai, Bengaluru, Hyderabad, Chennai, Kolkata, Lucknow, Jaipur**).
+  4. **Click-to-Locate on Map**: Click anywhere on the map to drop a pin and find nearby partners.
+- **Proximity Ranking**: Real-time Haversine distance calculations sort institutions by proximity.
+- **Banking Health Safeguards**: Automatically flags or excludes branches with high NPA rates (>5%) and checks fund utilization rates.
+- **Direct Citizen Action**: Tap to dial phone numbers, email branch nodal officers, or focus directly on the interactive Leaflet map.
+
+### 5. Enterprise Reliability & Error Boundaries
+- Equipped with Next.js 14 App Router error boundaries (`error.tsx` and `global-error.tsx`) to prevent reload loops and provide one-click graceful recovery.
+
+---
+
+## Schemes Covered Across Government Portals
+
+| Scheme Code | Scheme Title | Governing Ministry / Apex Body | Concessional Rate | Max Project Limit | Key Highlights & Subsidies | Official Portal |
+|---|---|---|---|---|---|---|
+| **PMEGP** | Prime Minister’s Employment Generation Programme | Ministry of MSME / KVIC | Benchmark Base Rate | ₹50.00 Lakhs | 15% to 35% Capital Margin Subsidy | [kviconline.gov.in](https://www.kviconline.gov.in/pmegpeportal/) |
+| **MUDRA-SHISHU** | Pradhan Mantri MUDRA Yojana (Shishu) | Ministry of Finance / MUDRA | 7.5% – 9.0% p.a. | ₹50,000 | Zero collateral micro-enterprise credit | [mudra.org.in](https://www.mudra.org.in/) |
+| **MUDRA-KISHORE** | Pradhan Mantri MUDRA Yojana (Kishore) | Ministry of Finance / MUDRA | 8.0% – 10.0% p.a. | ₹5.00 Lakhs | Scaling credit for working capital | [mudra.org.in](https://www.mudra.org.in/) |
+| **MUDRA-TARUN** | Pradhan Mantri MUDRA Yojana (Tarun) | Ministry of Finance / MUDRA | 8.5% – 11.0% p.a. | ₹10.00 Lakhs | Expansion loan for established units | [mudra.org.in](https://www.mudra.org.in/) |
+| **STANDUP-INDIA** | Stand-Up India Scheme | Ministry of Finance / SIDBI | Bank Base Rate + (1-3%) | ₹100.00 Lakhs | Dedicated to SC, ST & Women entrepreneurs | [standupmitra.in](https://www.standupmitra.in/) |
+| **PM-VISHWAKARMA** | PM Vishwakarma Yojana | Ministry of MSME / Skill Dev | 5.0% p.a. Concessional | ₹3.00 Lakhs | ₹15,000 Toolkit Grant + 8% Interest Subvention | [pmvishwakarma.gov.in](https://pmvishwakarma.gov.in/) |
+| **PM-SVANIDHI** | PM Street Vendor’s AtmaNirbhar Nidhi | MoHUA / SIDBI | 7.0% Interest Subsidy | ₹50,000 | Collateral-free micro-credit for urban vendors | [pmsvanidhi.mohua.gov.in](https://pmsvanidhi.mohua.gov.in/) |
+| **NSFDC-TL** | Term Loan Scheme (General Enterprise) | MoSJE / NSFDC | 6.0% p.a. Concessional | ₹50.00 Lakhs | Covers up to 90% project cost for SC artisans | [nsfdc.nic.in](https://nsfdc.nic.in/) |
+| **NSFDC-MCF** | Micro Credit Finance Scheme | MoSJE / NSFDC | 5.0% p.a. Concessional | ₹1.50 Lakhs | Quick credit via Self Help Groups | [nsfdc.nic.in](https://nsfdc.nic.in/) |
+| **NSFDC-MSY** | Mahila Samriddhi Yojana | MoSJE / NSFDC | 4.0% p.a. Subsidized | ₹1.40 Lakhs | Exclusive concessional finance for SC women | [nsfdc.nic.in](https://nsfdc.nic.in/) |
+| **NSTFDC-TERM** | NSTFDC Term Loan for ST Entrepreneurs | MoTA / NSTFDC | 6.0% p.a. Concessional | ₹50.00 Lakhs | Up to 90% funding for Scheduled Tribes | [nstfdc.tribal.gov.in](https://nstfdc.tribal.gov.in/) |
+| **NBCFDC-GLS** | NBCFDC General Loan Scheme | MoSJE / NBCFDC | 6.0% – 7.0% p.a. | ₹15.00 Lakhs | Targeted credit for Backward Classes | [nbcfdc.gov.in](https://nbcfdc.gov.in/) |
+| **NMDFC-TERM** | Term Loan Scheme for Minorities | MoMA / NMDFC | 6.0% p.a. Concessional | ₹30.00 Lakhs | Credit for Muslims, Christians, Sikhs, Buddhists, Parsis, Jains | [nmdfc.org](https://www.nmdfc.org/) |
+| **CGTMSE** | Credit Guarantee Fund Trust for MSEs | Ministry of MSME / SIDBI | Commercial Bank Standard | ₹500.00 Lakhs | Up to 85% credit guarantee without third-party collateral | [cgtmse.in](https://www.cgtmse.in/) |
+
+---
+
+## Technology Architecture
+
+| Layer | Framework / Library | Role & Functionality |
 |---|---|---|
-| **Backend** | FastAPI (Python 3.11+) | Asynchronous REST architecture, Pydantic v2 validation, CORS & security middlewares |
-| **Matching Algorithms** | Custom Rule & Vector Engine | Statutory filtering, multi-factor weighting, eligibility reasoning generation |
-| **Frontend** | Next.js 14 / React / TypeScript | Server and client component separation, Next.js internal API rewrite proxy |
-| **Geospatial & Maps** | Leaflet / React-Leaflet | Dynamic custom HTML markers with CSS variable styling, circle radiuses, popups |
-| **Styling** | Vanilla CSS Design Tokens | Zero Tailwind bloat, modular variables (`variables.css`, `global.css`), fluid micro-animations |
-| **Deployment** | Docker & Docker Compose | Containerized database, backend API, and frontend client |
+| **Frontend Framework** | **Next.js 14** (App Router) | Server-side rendering, client hydration, dynamic route proxying |
+| **Frontend Language** | **TypeScript 5.0+** | Strict static typing, type-safe API communication |
+| **Styling & Theme** | **Vanilla Semantic CSS Tokens** | Zero CSS framework bloat, instant dark/light theme switching, glassmorphism |
+| **Mapping & Geospatial** | **Leaflet 1.9.4 & OpenStreetMap** | Dynamic HTML markers, pulsing user location beacons, interactive popups |
+| **Backend API** | **FastAPI (Python 3.11+)** | High-performance asynchronous REST API with automatic OpenAPI Swagger docs |
+| **Data Validation** | **Pydantic v2** | Strict validation of project inputs, demographics, and loan parameters |
+| **Containerization** | **Docker & Docker Compose** | Multi-container unified local and production orchestration |
 
 ---
 
-## Repository Structure
+## Directory Structure
 
 ```
-.
+AI-Driven-Scheme-/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py                     # FastAPI application factory and routing
 │   │   ├── api/v1/
-│   │   │   ├── schemes.py              # Scheme catalog and matching endpoints
-│   │   │   ├── calculator.py           # Financial simulator endpoint
-│   │   │   ├── partners.py             # Geospatial channel partner locator
-│   │   │   └── health.py               # Minimalist service health check
-│   │   ├── schemas/                    # Pydantic validation schemas
-│   │   │   ├── scheme.py               # Matching input and output models
-│   │   │   ├── calculator.py           # Loan and moratorium calculation models
-│   │   │   └── partner.py              # Partner locator schemas
-│   │   └── services/                   # Business logic and algorithms
-│   │       ├── matching_engine.py      # Core eligibility and scoring algorithm
-│   │       ├── financial_calculator.py # EMI, moratorium, and savings formulas
-│   │       └── channel_partner_service.py # Geospatial locator & NPA filtering
-│   ├── requirements.txt                # Python backend dependencies
-│   └── Dockerfile                      # Backend container configuration
+│   │   │   ├── schemes.py             # Scheme catalog & evaluation endpoints
+│   │   │   ├── calculator.py          # Concessional EMI simulation endpoint
+│   │   │   ├── partners.py            # Channel partner geospatial router
+│   │   │   ├── matching.py            # AI scheme matcher endpoint
+│   │   │   └── users.py               # Profile persistence
+│   │   ├── core/                      # Settings & security configuration
+│   │   ├── schemas/                   # Pydantic schemas
+│   │   │   ├── scheme.py
+│   │   │   ├── calculator.py
+│   │   │   └── partner.py
+│   │   ├── services/                  # Business logic
+│   │   │   ├── matching_engine.py
+│   │   │   ├── financial_calculator.py
+│   │   │   └── channel_partner_service.py
+│   │   └── main.py                    # FastAPI entrypoint
+│   ├── requirements.txt
+│   └── Dockerfile
 ├── frontend/
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── layout.tsx              # Root HTML wrapper with metadata
-│   │   │   └── page.tsx                # Unified command center interface
+│   │   │   ├── layout.tsx             # Root layout with comprehensive metadata
+│   │   │   ├── page.tsx               # Command center tab interface
+│   │   │   ├── not-found.tsx          # Custom 404 error page
+│   │   │   ├── error.tsx              # Client-side error boundary
+│   │   │   └── global-error.tsx       # Root layout global error boundary
 │   │   ├── components/
-│   │   │   ├── Navbar.tsx              # Navigation bar with theme and language switchers
-│   │   │   ├── SchemeCard.tsx          # Card with SVG score rings and routing drawers
-│   │   │   ├── FinancialCalculator.tsx # Interactive debt and moratorium simulator
-│   │   │   └── PartnerLocator.tsx      # GPS-enabled interactive partner map
+│   │   │   ├── Navbar.tsx             # Theme toggle & 7-language selector
+│   │   │   ├── SchemeCard.tsx         # Score gauge, subsidy chips, documents
+│   │   │   ├── FinancialCalculator.tsx# Concessional debt & moratorium simulator
+│   │   │   └── PartnerLocator.tsx     # GPS + IP map with proximity routing
 │   │   ├── lib/
-│   │   │   └── api.ts                  # Type-safe API client and client-side proxy binding
+│   │   │   ├── api.ts                 # Type-safe API client & India-wide dataset
+│   │   │   ├── LanguageContext.tsx    # Context provider for multi-language state
+│   │   │   └── translations.ts        # Full dictionaries for 7 languages
 │   │   └── styles/
-│   │       ├── variables.css           # Semantic color tokens (Dark & Light modes)
-│   │       └── global.css              # Baseline resets, card motion, and button styles
-│   ├── next.config.js                  # Next.js configuration and API rewrite rules
-│   ├── package.json                    # Node dependencies and build scripts
-│   └── Dockerfile                      # Frontend container configuration
-├── docker-compose.yml                  # Container orchestration specification
-├── .gitignore                          # Git exclusion patterns
-└── README.md                           # System documentation
+│   │       ├── global.css             # Glassmorphism, animations, responsive resets
+│   │       └── variables.css          # Semantic CSS color tokens
+│   ├── next.config.js                 # API rewrite proxy
+│   ├── package.json
+│   └── tsconfig.json
+├── docker-compose.yml
+└── README.md
 ```
 
 ---
 
-## Local Development Setup
+## Quickstart & Local Development
 
 ### Prerequisites
-- Python 3.11+
-- Node.js 18+ and npm
-- Git
+- **Node.js**: v18.0 or higher
+- **Python**: v3.11 or higher
+- **Git**
 
-### 1. Backend Configuration
+### 1. Clone the Repository
+```bash
+git clone https://github.com/Basithmd024/AI-Driven-Scheme-.git
+cd AI-Driven-Scheme-
+```
+
+### 2. Launch the Backend API
 ```bash
 cd backend
 python3 -m venv venv
@@ -116,102 +187,59 @@ source venv/bin/activate
 pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-- API Base URL: `http://localhost:8000`
-- Interactive Swagger UI: `http://localhost:8000/docs`
-- Health Check: `http://localhost:8000/api/v1/health`
+- **API Base**: `http://localhost:8000/api/v1`
+- **Swagger Documentation**: `http://localhost:8000/docs`
+- **System Health Status**: `http://localhost:8000/api/v1/status`
 
-### 2. Frontend Configuration
+### 3. Launch the Frontend
+In a new terminal window:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-- Web Application: `http://localhost:3000`
+- **Web Portal**: `http://localhost:3000`
 
 ---
 
-## API Reference
+## Docker Deployment
 
-### 1. Health Verification
-- **Endpoint**: `GET /api/v1/health`
-- **Response**:
-  ```json
-  { "status": "ok" }
-  ```
-
-### 2. Scheme Recommendation Engine
-- **Endpoint**: `POST /api/v1/matching/recommend`
-- **Request Body**:
-  ```json
-  {
-    "full_name": "Ramesh Kumar",
-    "annual_family_income": 250000,
-    "project_cost": 500000,
-    "target_demographics": ["sc_artisan"],
-    "state": "Delhi",
-    "business_type": "handicrafts"
-  }
-  ```
-- **Response**: Array of eligible schemes sorted by match score with channel guidelines, AI assessment reasoning, and document checklists.
-
-### 3. Financial & Moratorium Simulator
-- **Endpoint**: `POST /api/v1/calculator/calculate`
-- **Request Body**:
-  ```json
-  {
-    "project_cost": 500000,
-    "concessional_interest_rate": 6.0,
-    "tenure_years": 5,
-    "moratorium_months": 6,
-    "channel_finance_coverage": 90.0,
-    "commercial_benchmark_rate": 13.5
-  }
-  ```
-- **Response**:
-  ```json
-  {
-    "loan_amount": 450000.0,
-    "promoter_contribution": 50000.0,
-    "monthly_emi": 8700.12,
-    "total_interest_concessional": 72007.2,
-    "total_amount_payable": 522007.2,
-    "commercial_benchmark_interest": 162000.0,
-    "beneficiary_savings_amount": 89992.8,
-    "moratorium_months": 6,
-    "repayment_tenure_months": 60
-  }
-  ```
-
-### 4. Channel Partner Locator
-- **Endpoint**: `POST /api/v1/partners/locate`
-- **Request Body**:
-  ```json
-  {
-    "latitude": 28.6139,
-    "longitude": 77.2090,
-    "radius_km": 25.0,
-    "state": "Delhi",
-    "category": "SCA",
-    "only_active": true
-  }
-  ```
-- **Response**: Filtered list of verified banking and channel partners ranked by distance with NPA rates and contact information.
+To launch the complete platform using Docker Compose:
+```bash
+docker-compose up --build
+```
+This builds and connects:
+- Frontend on `http://localhost:3000`
+- Backend API on `http://localhost:8000`
 
 ---
 
-## Scheme Governance Matrix
+## API Documentation
 
-| Scheme Code | Scheme Name | Concessional Rate | Max Project Limit | Max Moratorium | Channel Partners |
-|---|---|---|---|---|---|
-| **NSFDC-TL-01** | Term Loan Scheme (General Enterprise) | 6.0% p.a. | INR 50.00 Lakhs | 6 Months | SCAs, PSBs, RRBs |
-| **NSFDC-MC-02** | Micro Credit Finance Scheme | 5.0% p.a. | INR 1.50 Lakhs | 3 Months | SCAs, NBFC-MFIs |
-| **NSFDC-MS-03** | Mahila Samriddhi Yojana | 4.0% p.a. | INR 1.40 Lakhs | 6 Months | SCAs, PSBs |
-| **NSFDC-EL-04** | Educational Loan (Domestic Studies) | 7.5% p.a. | INR 20.00 Lakhs | Course + 12m | PSBs, SCAs |
-| **NSFDC-EL-05** | Educational Loan (Overseas Studies) | 8.0% p.a. | INR 30.00 Lakhs | Course + 12m | PSBs, SCAs |
-| **NSFDC-GB-06** | Green Business Scheme (EV / Solar) | 6.5% p.a. | INR 30.00 Lakhs | 6 Months | SCAs, PSBs, RRBs |
+### Scheme Matching & Recommendation
+- **`POST /api/v1/matching/evaluate`**
+  - Evaluates user profile against all-India schemes and returns match scores, eligibility status, required documents, and channel partner routing rules.
+
+### Concessional Loan Simulator
+- **`POST /api/v1/calculator/calculate`**
+  - Computes net loan, promoter margin, monthly EMI, moratorium simple interest, total repayment outflow, and direct rupee savings versus the 13.5% commercial benchmark.
+
+### Channel Partner Radar
+- **`POST /api/v1/partners/locate`**
+  - Accepts GPS coordinates (`user_lat`, `user_lng`) and filters (`state`, `category`, `active_only`) to return institutions ranked by proximity with NPA health metrics.
+
+---
+
+## Contributing
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
 ## License
 
-This project is released under the **MIT License**.
+Distributed under the **MIT License**. See `LICENSE` for more information.
