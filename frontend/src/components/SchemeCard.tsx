@@ -24,6 +24,8 @@ export const SchemeCard: React.FC<SchemeCardProps> = ({ match, index }) => {
     disqualification_reason,
   } = match;
 
+  const isDisqualified = Boolean(is_disqualified || eligibility_status === "Disqualified");
+
   const displayTitle =
     lang === "hi" && (scheme as any).title_hi
       ? (scheme as any).title_hi
