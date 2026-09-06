@@ -1,6 +1,8 @@
+import "../styles/global.css";
+
 export const metadata = {
-  title: 'AI Scheme Matcher | Empowering Marginalized Entrepreneurs',
-  description: 'AI-driven scheme matching and eligibility engine for marginalized entrepreneurs.',
+  title: 'Samarthya Setu | SC Channel Finance & AI Scheme Recommender',
+  description: 'AI-driven platform connecting Scheduled Caste beneficiaries to 100+ Channel Partners with Smart Scheme Recommendations, Concessional EMI Calculator, and Geo-Spatial Partner Health Routing.',
 };
 
 export default function RootLayout({
@@ -10,6 +12,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+      </head>
       <body>{children}</body>
     </html>
   );

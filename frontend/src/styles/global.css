@@ -1,21 +1,26 @@
 @import "./variables.css";
 
-/* Reset & Base Styles */
-* {
+/* ─── Global Reset & Command Center Baseline ─── */
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html,
+html {
+  font-size: 15px;
+  scroll-behavior: smooth;
+}
+
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
-  background-color: var(--bg-main);
-  color: var(--text-main);
-  font-family: var(--font-family);
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  line-height: 1.5;
+  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--duration-normal) ease, color var(--duration-normal) ease;
 }
 
 a {
@@ -23,40 +28,318 @@ a {
   text-decoration: none;
 }
 
-/* Accessibility: High visibility focus outline for keyboard navigation */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline: 3px solid var(--primary-accent);
-  outline-offset: 2px;
+/* ─── National Tricolor Strip (Using Dynamic Tokens) ─── */
+.national-accent-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--flag-saffron) 0%, var(--flag-saffron) 33.3%, var(--flag-white) 33.3%, var(--flag-white) 66.6%, var(--flag-green) 66.6%, var(--flag-green) 100%);
+  width: 100%;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ─── Ticker Marquee Bar ─── */
+.credit-ticker {
+  background: var(--ticker-bg);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.35rem 1.5rem;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-weight: 500;
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
+.credit-ticker strong {
+  color: var(--brand-accent);
 }
 
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+/* ─── Premium Glassmorphic Card ─── */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: transform var(--duration-fast) var(--ease-spring),
+              box-shadow var(--duration-fast) ease,
+              border-color var(--duration-fast) ease;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+.glass-panel:hover {
+  box-shadow: var(--shadow-card-hover);
 }
 
-/* Card Hover Animations */
-.scheme-card-hover {
-  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+/* ─── Scheme Card Motion (Entrance + Hover) ─── */
+@keyframes cardSpringUp {
+  0% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.98);
+  }
+  65% {
+    opacity: 0.95;
+    transform: translateY(-2px) scale(1.003);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-.scheme-card-hover:hover {
+.scheme-card-motion {
+  opacity: 0;
+  animation: cardSpringUp 0.5s var(--ease-spring) forwards;
+  will-change: transform, opacity;
+  transition: transform var(--duration-fast) var(--ease-spring),
+              box-shadow var(--duration-fast) ease,
+              border-color var(--duration-fast) ease;
+}
+
+.scheme-card-motion:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--border-highlight);
+}
+
+/* ─── Navigation Tabs (Apex Command Style) ─── */
+.command-nav {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0.5rem 1.5rem;
+}
+
+.nav-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--duration-fast) ease;
+}
+
+.nav-pill-btn:hover {
+  color: var(--text-primary);
+  background: var(--hover-subtle);
+}
+
+.nav-pill-btn.active {
+  color: var(--text-contrast);
+  background: var(--brand-gradient);
+  box-shadow: var(--btn-glow);
+  border-color: var(--border-highlight);
+}
+
+/* ─── Metric Chips & Badges ─── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.chip-emerald { background: var(--status-active-bg); color: var(--status-active); border: 1px solid var(--status-active-border); }
+.chip-cyan    { background: var(--status-info-bg); color: var(--status-info); border: 1px solid var(--status-info-border); }
+.chip-amber   { background: var(--status-warning-bg); color: var(--status-warning); border: 1px solid var(--status-warning-border); }
+.chip-rose    { background: var(--status-danger-bg); color: var(--status-danger); border: 1px solid var(--status-danger-border); }
+.chip-purple  { background: var(--status-purple-bg); color: var(--status-purple); border: 1px solid var(--status-purple-border); }
+
+/* ─── Circular Score Progress Ring ─── */
+.score-ring-container {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-ring-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.score-ring-bg {
+  stroke: var(--border-subtle);
+  stroke-width: 6;
+  fill: none;
+}
+
+.score-ring-fill {
+  stroke-width: 6;
+  stroke-linecap: round;
+  fill: none;
+  transition: stroke-dashoffset 1s var(--ease-spring);
+}
+
+.score-ring-text {
+  position: absolute;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* ─── Archetype Quick Preset Cards ─── */
+.archetype-btn {
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all var(--duration-fast) var(--ease-spring);
+  font-family: inherit;
+  text-align: left;
+}
+
+.archetype-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--brand-accent);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.archetype-btn.active {
+  background: var(--brand-cyan-glow);
+  border-color: var(--brand-accent);
+  color: var(--brand-accent);
+  box-shadow: var(--shadow-subtle);
+}
+
+/* ─── Form Inputs ─── */
+.input-box {
+  width: 100%;
+  padding: 0.65rem 0.95rem;
+  background: var(--bg-inset);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  font-family: inherit;
+  transition: all var(--duration-fast) ease;
+}
+
+.input-box:focus {
+  outline: none;
+  border-color: var(--brand-accent);
+  box-shadow: 0 0 0 3px var(--brand-cyan-glow);
+}
+
+.field-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+/* ─── Action Buttons (Apex High Performance) ─── */
+.btn-apex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.6rem;
+  background: var(--brand-gradient);
+  color: var(--text-contrast);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: var(--btn-glow);
+  transition: all var(--duration-fast) var(--ease-spring);
+}
+
+.btn-apex:hover {
+  background: var(--brand-gradient-hover);
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--btn-glow-hover);
+}
+
+.btn-apex:active {
+  transform: translateY(0);
+}
+
+.btn-apex:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ─── Range Sliders ─── */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border-subtle);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+  cursor: pointer;
+  box-shadow: var(--thumb-glow);
+  border: 2px solid var(--text-contrast);
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+}
+
+/* ─── Pulse Animation for Radar ─── */
+@keyframes radarPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 var(--pulse-ring-start); }
+  70% { transform: scale(1.02); box-shadow: 0 0 0 14px var(--pulse-ring-end); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 var(--pulse-ring-end); }
+}
+
+.radar-pulse-badge {
+  animation: radarPulse 2s infinite;
+}
+
+/* ─── Scrollbars ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-inset); }
+::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--brand-accent); }
+
+/* ─── Accessibility ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .scheme-card-motion, .radar-pulse-badge {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }

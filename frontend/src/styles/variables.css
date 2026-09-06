@@ -1,21 +1,163 @@
+/* Samarthya Setu - Dynamic Semantic Color System (Zero Static Colors) */
+
 :root {
-  --primary-blue: #1e3a8a;
-  --primary-accent: #2563eb;
-  --primary-hover: #1d4ed8;
-  --success-green: #16a34a;
-  --warning-amber: #d97706;
-  --danger-red: #dc2626;
+  /* Default: Dark Command Center */
+  --bg-app: #090d16;
+  --bg-surface: #0f172a;
+  --bg-card: rgba(15, 23, 42, 0.75);
+  --bg-card-hover: rgba(30, 41, 59, 0.85);
+  --bg-card-solid: #1e293b;
+  --bg-inset: #070b12;
 
-  --bg-main: #f8fafc;
-  --bg-card: #ffffff;
-  --border-color: #e2e8f0;
-  
-  --text-main: #0f172a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.14);
+  --border-highlight: rgba(56, 189, 248, 0.35);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+  --text-contrast: #ffffff;
+
+  --hover-subtle: rgba(255, 255, 255, 0.06);
+  --ticker-bg: rgba(0, 0, 0, 0.45);
+
+  --brand-primary: #2563eb;
+  --brand-primary-hover: #1d4ed8;
+  --brand-accent: #38bdf8;
+  --brand-cyan-glow: rgba(56, 189, 248, 0.2);
+  --brand-gradient: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
+  --brand-badge-bg: linear-gradient(135deg, #1e3a5f 0%, #0b1f36 100%);
+
+  --btn-glow: 0 4px 16px rgba(37, 99, 235, 0.35);
+  --btn-glow-hover: 0 6px 22px rgba(56, 189, 248, 0.4);
+  --thumb-glow: 0 0 10px rgba(56, 189, 248, 0.6);
+
+  --status-active: #10b981;
+  --status-active-bg: rgba(16, 185, 129, 0.12);
+  --status-active-border: rgba(16, 185, 129, 0.3);
+  --status-active-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+
+  --status-warning: #f59e0b;
+  --status-warning-bg: rgba(245, 158, 11, 0.12);
+  --status-warning-border: rgba(245, 158, 11, 0.3);
+
+  --status-danger: #f43f5e;
+  --status-danger-bg: rgba(244, 63, 94, 0.12);
+  --status-danger-border: rgba(244, 63, 94, 0.3);
+
+  --status-info: #38bdf8;
+  --status-info-bg: rgba(56, 189, 248, 0.12);
+  --status-info-border: rgba(56, 189, 248, 0.3);
+
+  --status-purple: #a855f7;
+  --status-purple-bg: rgba(168, 85, 247, 0.12);
+  --status-purple-border: rgba(168, 85, 247, 0.3);
+
+  /* Semantic Aliases for Components */
+  --accent-emerald: var(--status-active);
+  --accent-emerald-bg: var(--status-active-bg);
+  --accent-amber: var(--status-warning);
+  --accent-amber-bg: var(--status-warning-bg);
+  --accent-rose: var(--status-danger);
+  --accent-rose-bg: var(--status-danger-bg);
+  --accent-purple: var(--status-purple);
+  --accent-purple-bg: var(--status-purple-bg);
+
+  --pin-user: #38bdf8;
+  --pin-sca: #10b981;
+  --pin-psb: #38bdf8;
+  --pin-rrb: #f59e0b;
+  --pin-mfi: #a855f7;
+
+  --pulse-ring-start: rgba(56, 189, 248, 0.7);
+  --pulse-ring-end: rgba(56, 189, 248, 0);
+
+  --flag-saffron: #ff9933;
+  --flag-white: #ffffff;
+  --flag-green: #138808;
+
+  --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-card-hover: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(56, 189, 248, 0.35);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 180ms;
+  --duration-normal: 300ms;
+}
+
+/* Light Mode: Dynamically re-maps all design tokens */
+[data-theme="light"] {
+  --bg-app: #f4f6fa;
+  --bg-surface: #ffffff;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-hover: #ffffff;
+  --bg-card-solid: #ffffff;
+  --bg-inset: #edf2f7;
+
+  --border-subtle: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --border-highlight: rgba(37, 99, 235, 0.3);
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
   --text-muted: #64748b;
-  --text-light: #94a3b8;
+  --text-faint: #94a3b8;
+  --text-contrast: #ffffff;
 
-  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-  --border-radius: 8px;
-  --transition-speed: 0.2s ease;
+  --hover-subtle: rgba(15, 23, 42, 0.05);
+  --ticker-bg: #e2e8f0;
+
+  --brand-primary: #2563eb;
+  --brand-primary-hover: #1d4ed8;
+  --brand-accent: #0284c7;
+  --brand-cyan-glow: rgba(2, 132, 199, 0.12);
+  --brand-gradient: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  --brand-gradient-hover: linear-gradient(135deg, #2563eb 0%, #0284c7 100%);
+  --brand-badge-bg: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+
+  --btn-glow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  --btn-glow-hover: 0 6px 18px rgba(2, 132, 199, 0.3);
+  --thumb-glow: 0 0 8px rgba(2, 132, 199, 0.5);
+
+  --status-active: #059669;
+  --status-active-bg: #ecfdf5;
+  --status-active-border: #a7f3d0;
+  --status-active-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
+
+  --status-warning: #d97706;
+  --status-warning-bg: #fffbeb;
+  --status-warning-border: #fde68a;
+
+  --status-danger: #e11d48;
+  --status-danger-bg: #fff1f2;
+  --status-danger-border: #fecdd3;
+
+  --status-info: #0284c7;
+  --status-info-bg: #f0f9ff;
+  --status-info-border: #bae6fd;
+
+  --status-purple: #7c3aed;
+  --status-purple-bg: #faf5ff;
+  --status-purple-border: #e9d5ff;
+
+  --pin-user: #0284c7;
+  --pin-sca: #059669;
+  --pin-psb: #0284c7;
+  --pin-rrb: #d97706;
+  --pin-mfi: #7c3aed;
+
+  --pulse-ring-start: rgba(2, 132, 199, 0.7);
+  --pulse-ring-end: rgba(2, 132, 199, 0);
+
+  --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 0 0 1px #e2e8f0;
+  --shadow-card-hover: 0 16px 32px -8px rgba(15, 23, 42, 0.12), 0 0 0 1.5px rgba(37, 99, 235, 0.25);
 }
