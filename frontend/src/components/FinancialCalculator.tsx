@@ -3,7 +3,15 @@ import React, { useState, useEffect } from "react";
 import { calculateEMI, EMIResponse } from "../lib/api";
 import { useLanguage } from "../lib/LanguageContext";
 
-export const FinancialCalculator: React.FC = () => {
+interface FinancialCalculatorProps {
+  initialScheme?: Scheme | null;
+  onClearInitialScheme?: () => void;
+}
+
+export const FinancialCalculator: React.FC<FinancialCalculatorProps> = ({
+  initialScheme,
+  onClearInitialScheme,
+}) => {
   const { t } = useLanguage();
   const [projectCost, setProjectCost] = useState<number>(500000);
   const [promoter, setPromoter] = useState<number>(5);
@@ -15,6 +23,17 @@ export const FinancialCalculator: React.FC = () => {
   const [result, setResult] = useState<EMIResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [showSchedule, setShowSchedule] = useState<boolean>(false);
+
+    // Sync with pre-filled scheme if triggered from SchemeCard
+  useEffect(() => {
+    if (initialScheme) {
+      if (initialScheme.max_project_cost) setProjectCost(initialScheme.max_project_cost);
+      if (initialScheme.concessional_interest_rate) setRate(initialScheme.concessional_interest_rate);
+      if (initialScheme.max_moratorium_months !== undefined) setMoratorium(initialScheme.max_moratorium_months);
+      if (initialScheme.max_tenure_years) setTenure(initialScheme.max_tenure_years);
+      if (initialScheme.promoter_contribution_min !== undefined) setPromoter(initialScheme.promoter_contribution_min);
+    }
+  }, [initialScheme]);
 
   const triggerCalculate = async () => {
     setLoading(true);

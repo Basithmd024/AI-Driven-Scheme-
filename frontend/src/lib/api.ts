@@ -617,6 +617,77 @@ export const INDIA_WIDE_FALLBACK_PARTNERS: ChannelPartner[] = [
   }
 ];
 
+/* ─── AI Agent (Sahayak) ─── */
+export interface AgentToolStep {
+  tool: string;
+  detail: string;
+}
+
+export interface AgentChatResponse {
+  reply: string;
+  tools_used: AgentToolStep[];
+  agent: string;
+  engine: "rule-based" | "llm" | string;
+}
+
+export async function chatWithAgent(
+  message: string,
+  profile?: EntrepreneurProfile | null,
+  history: { role: "user" | "assistant"; content: string }[] = [],
+  language: string = "en"
+): Promise<AgentChatResponse> {
+  try {
+    const res = await fetch(`${API_BASE}/agent/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, profile: profile ?? undefined, history, language }),
+    });
+    if (!res.ok) throw new Error("Agent API failed");
+    return await res.json();
+  } catch (err) {
+    // Offline fallback: a compact deterministic advisor mirroring the backend tools
+    return agentFallback(message, profile ?? null);
+  }
+}
+
+function agentFallback(message: string, profile: EntrepreneurProfile | null): AgentChatResponse {
+  const text = message.toLowerCase();
+  const income = profile?.annual_family_income ?? 250000;
+  const cost = profile?.estimated_project_cost ?? 1000000;
+  const tools: AgentToolStep[] = [];
+
+  if (/(emi|monthly|repay|instal|install)/.test(text)) {
+    tools.push({ tool: "concessional_emi_calculator", detail: `Simulated ₹${cost.toLocaleString("en-IN")} @ 8% p.a., 5y tenure, 6m moratorium` });
+    const r = 8 / 1200;
+    const n = 54;
+    const emi = Math.round((cost * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1));
+    return {
+      reply: `Estimated EMI for a ₹${cost.toLocaleString("en-IN")} concessional loan @ 8% p.a. over 5 years (6-month moratorium): ₹${emi.toLocaleString("en-IN")}/month. Interest during moratorium is simple interest, then the EMI starts. Open the EMI & Moratorium Simulator tab to fine-tune tenure, rate and promoter margin.`,
+      tools_used: tools,
+      agent: "sahayak",
+      engine: "rule-based",
+    };
+  }
+
+  if (/(partner|branch|bank|where to apply|sca|nearby)/.test(text)) {
+    tools.push({ tool: "channel_partner_locator", detail: `Searched active partners in ${profile?.state ?? "your state"} (NPA < 5%)` });
+    return {
+      reply: `Open the Channel Partner Locator tab to see verified SCAs, public-sector banks and RRBs near ${profile?.district ?? "you"}, with NPA health scores, disbursement TATs and one-click calling. National helpline: 14566 (toll-free).`,
+      tools_used: tools,
+      agent: "sahayak",
+      engine: "rule-based",
+    };
+  }
+
+  tools.push({ tool: "scheme_matching_engine", detail: `Evaluated profile: ${profile?.social_category ?? "General"}, ${profile?.gender ?? "female"}, income ₹${income.toLocaleString("en-IN")}, project ₹${cost.toLocaleString("en-IN")}` });
+  return {
+    reply: `Based on your profile, run "Run AI Scheme Matching" in the Recommender tab — it evaluates you against all 12 central schemes (PMEGP, MUDRA, Stand-Up India, Vishwakarma, SVANidhi, NSFDC, NSTFDC, NBCFDC, NMDFC, CGTMSE) and hides schemes you are not eligible for. Ask me things like "EMI for 15 lakh loan" or "where do I apply in ${profile?.state ?? "my state"}?".`,
+    tools_used: tools,
+    agent: "sahayak",
+    engine: "rule-based",
+  };
+}
+
 /* ─── API Functions ─── */
 export async function matchSchemes(profile: EntrepreneurProfile): Promise<SchemeMatchResult[]> {
   try {
@@ -659,14 +730,11 @@ export async function matchSchemes(profile: EntrepreneurProfile): Promise<Scheme
         continue; // Strictly do not show schemes where applicant is not eligible
       }
 
-      // 2. Gender Exclusivity Check: Ineligible if women-only scheme and applicant is male/other
+      // 2. Gender Exclusivity Check: Ineligible if women-only scheme and applicant is male/other.
+      // A "Women" demographic tag alone is a concession bonus, not an exclusivity gate.
       const isWomenExclusive =
         scheme.eligibility_criteria?.gender_exclusive === "female" ||
-        scheme.category === "women_microfinance" ||
-        (targetDemographics.includes("WOMEN") &&
-          !targetDemographics.includes("ALL INDIA") &&
-          !targetDemographics.includes("GENERAL") &&
-          !targetDemographics.includes("MEN"));
+        scheme.category === "women_microfinance";
 
       if (isWomenExclusive && userGender !== "female") {
         continue; // Strictly do not show schemes where applicant is not eligible
@@ -679,14 +747,26 @@ export async function matchSchemes(profile: EntrepreneurProfile): Promise<Scheme
         targetDemographics.includes("ALL");
 
       if (!isUniversalCategory) {
+        // Trade-gated schemes (PM Vishwakarma artisan trades, PM SVANidhi street vendors)
+        // are open to ALL communities — their statutory gate is the trade/vocation, not caste.
+        const isTradeGated = Boolean(
+          scheme.eligibility_criteria?.artisan_trade || scheme.eligibility_criteria?.urban_vendor_id
+        );
+
+        // OR-mandate (Stand-Up India): SC/ST entrepreneurs OR women of ANY category
+        const isOrMandateWomen =
+          Boolean(scheme.eligibility_criteria?.sc_st_or_woman) &&
+          userGender === "female";
+
         const matchesCategory =
           (userCategory === "ST" && targetDemographics.includes("ST")) ||
           (userCategory === "SC" && targetDemographics.includes("SC")) ||
           (userCategory === "OBC" && targetDemographics.includes("OBC")) ||
           (userCategory === "MINORITY" && targetDemographics.includes("MINORITY")) ||
-          (userGender === "female" && targetDemographics.includes("WOMEN") && !targetDemographics.includes("ST") && !targetDemographics.includes("SC") && !targetDemographics.includes("OBC"));
+          (userGender === "female" && targetDemographics.includes("WOMEN") && !targetDemographics.includes("ST") && !targetDemographics.includes("SC") && !targetDemographics.includes("OBC")) ||
+          isOrMandateWomen;
 
-        if (!matchesCategory) {
+        if (!matchesCategory && !isTradeGated) {
           continue; // Ineligible by category: Strictly do not show
         }
       }

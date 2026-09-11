@@ -63,7 +63,17 @@ Seamless, instant language switching without page reload across 7 major Indian l
 - **Defensive Math Engine**: Zero-NaN mathematical formatting safeguards ensure uninterrupted financial forecasting under all edge cases and offline modes.
 - **Interactive Visual Timeline**: Visual bar showing moratorium vs. amortization phases plus month-by-month repayment schedule.
 
-### 4. Geospatial Channel Partner Radar & Branch Locator
+### 4. Samarthya Sahayak — Conversational AI Agent 🤖
+- **Tool-Grounded Advisory**: A chat agent that answers in natural language by invoking the platform's own verified services — never invents schemes or numbers.
+  - `scheme_matching_engine` — "Which schemes am I eligible for?" → personalized top matches with rates, subsidies and official apply links (respects the strict hide-ineligible rules).
+  - `concessional_emi_calculator` — "EMI for a ₹15 lakh loan over 7 years?" → EMI, moratorium interest, and savings vs the commercial benchmark.
+  - `channel_partner_locator` — "Where do I apply near me?" → active channel partners with address, phone and disbursement TAT.
+- **Message-Based Profile Extraction**: Understands amounts ("2 lakh", "2.5cr", "50k"), gender, social category, SHG/Udyam/Divyang status and trade mentions to enrich the current form profile.
+- **Transparent Reasoning**: Every reply carries a `tools_used` trace, surfaced in the UI as a 🔧 footer so users see exactly which service produced the answer.
+- **Works Fully Offline**: Deterministic intent routing + template answers need no API key. Optionally set `OPENAI_API_KEY` (or `GEMINI_API_KEY`) and the LLM polishes the phrasing of the same verified facts (facts always stay server-side).
+- **Floating Widget**: Available on every tab via the 🤖 button, pre-loaded with quick prompts and personalized by the current beneficiary profile.
+
+### 5. Geospatial Channel Partner Radar & Branch Locator
 - **Multi-Tiered Geolocation**:
   1. High-speed browser GPS with battery/desktop safety timeouts.
   2. Automatic network IP-based fallback if GPS access is blocked or unavailable.
@@ -73,7 +83,7 @@ Seamless, instant language switching without page reload across 7 major Indian l
 - **Banking Health Safeguards**: Automatically flags or excludes branches with high NPA rates (>5%) and checks fund utilization rates.
 - **Direct Citizen Action**: Tap to dial phone numbers, email branch nodal officers, or focus directly on the interactive Leaflet map.
 
-### 5. Enterprise Reliability & Error Boundaries
+### 6. Enterprise Reliability & Error Boundaries
 - Equipped with Next.js 14 App Router error boundaries (`error.tsx` and `global-error.tsx`) to prevent reload loops and provide one-click graceful recovery.
 
 ---
@@ -124,6 +134,7 @@ AI-Driven-Scheme-/
 │   │   │   ├── calculator.py          # Concessional EMI simulation endpoint
 │   │   │   ├── partners.py            # Channel partner geospatial router
 │   │   │   ├── matching.py            # AI scheme matcher endpoint
+│   │   │   ├── agent.py               # Sahayak conversational AI agent endpoint
 │   │   │   └── users.py               # Profile persistence
 │   │   ├── core/                      # Settings & security configuration
 │   │   ├── schemas/                   # Pydantic schemas
@@ -133,6 +144,7 @@ AI-Driven-Scheme-/
 │   │   ├── services/                  # Business logic
 │   │   │   ├── matching_engine.py
 │   │   │   ├── financial_calculator.py
+│   │   │   ├── scheme_advisor_agent.py # Sahayak tool-calling agent
 │   │   │   └── channel_partner_service.py
 │   │   └── main.py                    # FastAPI entrypoint
 │   ├── requirements.txt
@@ -149,7 +161,8 @@ AI-Driven-Scheme-/
 │   │   │   ├── Navbar.tsx             # Theme toggle & 7-language selector
 │   │   │   ├── SchemeCard.tsx         # Score gauge, subsidy chips, documents
 │   │   │   ├── FinancialCalculator.tsx# Concessional debt & moratorium simulator
-│   │   │   └── PartnerLocator.tsx     # GPS + IP map with proximity routing
+│   │   │   ├── PartnerLocator.tsx     # GPS + IP map with proximity routing
+│   │   │   └── AIAssistantChat.tsx    # Sahayak AI agent floating chat widget
 │   │   ├── lib/
 │   │   │   ├── api.ts                 # Type-safe API client & India-wide dataset
 │   │   │   ├── LanguageContext.tsx    # Context provider for multi-language state
@@ -227,6 +240,13 @@ This builds and connects:
 ### Channel Partner Radar
 - **`POST /api/v1/partners/locate`**
   - Accepts GPS coordinates (`user_lat`, `user_lng`) and filters (`state`, `category`, `active_only`) to return institutions ranked by proximity with NPA health metrics.
+
+### Conversational AI Agent (Sahayak)
+- **`POST /api/v1/agent/chat`**
+  - Body: `{ "message": "...", "profile": { ...EntrepreneurProfile }, "history": [...], "language": "en" }`
+  - Routes the question to the matching engine, EMI calculator, or partner locator and returns `{ "reply", "tools_used", "engine", "agent: "sahayak" }`.
+  - `engine` is `"llm"` when an `OPENAI_API_KEY`/`GEMINI_API_KEY` is configured (phrasing only), otherwise `"rule-based"`. Fully functional without any key.
+  - Example: `curl -X POST /api/v1/agent/chat -H 'Content-Type: application/json' -d '{"message":"EMI for 15 lakh loan for 7 years?"}'`
 
 ---
 

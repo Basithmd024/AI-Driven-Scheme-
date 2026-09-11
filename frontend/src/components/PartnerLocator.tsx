@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { locatePartners, ChannelPartner } from "../lib/api";
+import { locatePartners, ChannelPartner, Scheme } from "../lib/api";
 import { useLanguage } from "../lib/LanguageContext";
 import { ALL_INDIA_STATES } from "../lib/translations";
 
@@ -22,7 +22,21 @@ const POPULAR_HUBS = [
   { name: "Jaipur", lat: 26.9124, lng: 75.7873 },
 ];
 
-export const PartnerLocator: React.FC = () => {
+export interface PartnerLocatorProps {
+  selectedScheme?: Scheme | null;
+  onClearSchemeFilter?: () => void;
+  selectedPartner?: ChannelPartner | null;
+  onSelectPartner?: (partner: ChannelPartner) => void;
+  onViewSchemesForPartner?: (partner: ChannelPartner) => void;
+}
+
+export const PartnerLocator: React.FC<PartnerLocatorProps> = ({
+  selectedScheme,
+  onClearSchemeFilter,
+  selectedPartner: propSelectedPartner,
+  onSelectPartner,
+  onViewSchemesForPartner,
+}) => {
   const { t } = useLanguage();
   const [partners, setPartners] = useState<ChannelPartner[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -65,6 +79,20 @@ export const PartnerLocator: React.FC = () => {
   useEffect(() => {
     fetchPartners();
   }, [stateFilter, categoryFilter, activeOnly, userCoords]);
+
+  // Auto-align category filter when navigating from a specific scheme
+  useEffect(() => {
+    if (selectedScheme) {
+      const channelList = selectedScheme.eligibility_criteria?.channel_partners || [];
+      if (channelList.includes("SCA") && !channelList.includes("PSB")) {
+        setCategoryFilter("SCA");
+      } else if (channelList.includes("PSB") && !channelList.includes("SCA")) {
+        setCategoryFilter("PSB");
+      } else if (channelList.includes("RRB") && !channelList.includes("PSB")) {
+        setCategoryFilter("RRB");
+      }
+    }
+  }, [selectedScheme]);
 
   // Set specific location and fly map
   const applyLocation = (lat: number, lng: number, label: string) => {
@@ -690,6 +718,48 @@ export const PartnerLocator: React.FC = () => {
                   {p.status_message}
                 </div>
 
+                                {/* Approved Schemes & Direct Return Action */}
+                <div style={{ marginTop: "0.5rem", marginBottom: "0.5rem" }}>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontWeight: "700", marginBottom: "0.25rem" }}>
+                    Approved Lending Schemes:
+                  </div>
+                  <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
+                    {(p.supported_schemes || ["PMEGP", "MUDRA", "Stand-Up India"]).map((s, idx) => (
+                      <span key={idx} className="chip chip-purple" style={{ fontSize: "0.65rem", padding: "0.15rem 0.45rem" }}>
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {onViewSchemesForPartner && (
+                  <div style={{ marginBottom: "0.5rem" }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectPartner(p);
+                        onSelectPartner?.(p);
+                        onViewSchemesForPartner(p);
+                      }}
+                      className="btn-apex"
+                      style={{
+                        padding: "0.35rem 0.75rem",
+                        fontSize: "0.75rem",
+                        width: "100%",
+                        cursor: "pointer",
+                        borderRadius: "6px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "0.35rem",
+                      }}
+                    >
+                      <span>👉</span>
+                      <span>Select & View Matching Schemes</span>
+                    </button>
+                  </div>
+                )}
+
                 {/* Address & Direct Actions */}
                 <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", borderTop: "1px solid var(--border-subtle)", paddingTop: "0.5rem" }}>
                   <div style={{ marginBottom: "0.4rem" }}>🏢 {p.address}</div>
@@ -715,7 +785,7 @@ export const PartnerLocator: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleSelectPartner(p);
+                        handleSelectPartner(p); onSelectPartner?.(p);
                       }}
                       className="chip chip-purple"
                       style={{ border: "none", cursor: "pointer", fontSize: "0.72rem", padding: "0.25rem 0.55rem" }}

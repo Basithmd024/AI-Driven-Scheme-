@@ -4,7 +4,8 @@ import { Navbar } from "../components/Navbar";
 import { SchemeCard } from "../components/SchemeCard";
 import { FinancialCalculator } from "../components/FinancialCalculator";
 import { PartnerLocator } from "../components/PartnerLocator";
-import { matchSchemes, EntrepreneurProfile, SchemeMatchResult } from "../lib/api";
+import { AIAssistantChat } from "../components/AIAssistantChat";
+import { matchSchemes, EntrepreneurProfile, SchemeMatchResult, Scheme, ChannelPartner } from "../lib/api";
 import { useLanguage } from "../lib/LanguageContext";
 import { ALL_INDIA_STATES } from "../lib/translations";
 
@@ -19,6 +20,9 @@ export default function Home() {
   const { lang, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>("recommender");
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [selectedSchemeForPartner, setSelectedSchemeForPartner] = useState<Scheme | null>(null);
+  const [selectedSchemeForCalculator, setSelectedSchemeForCalculator] = useState<Scheme | null>(null);
+  const [selectedPartner, setSelectedPartner] = useState<ChannelPartner | null>(null);
 
   const PROJECT_TYPES = [
     { value: "msme_manufacturing", label: "MSME Manufacturing / Processing Unit (Up to ₹50L)" },
@@ -422,10 +426,59 @@ export default function Home() {
 
               {/* Matched Scheme Cards */}
               <section aria-label="Evaluated Schemes">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
-                  <h3 style={{ fontSize: "1.15rem", margin: 0, color: "var(--text-primary)", fontWeight: "800" }}>
-                    {t("results_heading", "Matched Government Credit Schemes")} ({filteredMatches.length})
-                  </h3>
+                <div style={{ marginBottom: "1.25rem" }}>
+                  <h2 style={{ fontSize: "1.85rem", fontWeight: "900", color: "#0f172a", letterSpacing: "-0.02em", margin: "0 0 0.35rem 0" }}>
+                    Your scheme recommendations
+                  </h2>
+                  <p style={{ fontSize: "0.92rem", color: "#64748b", margin: 0, lineHeight: "1.5" }}>
+                    We found schemes that match the information you provided. Your top match is highlighted below.
+                  </p>
+                </div>
+
+                {/* Selected Partner Filter Alert if active */}
+                {selectedPartner && (
+                  <div
+                    style={{
+                      background: "#f0fdf4",
+                      border: "1.5px solid #bbf7d0",
+                      borderRadius: "12px",
+                      padding: "0.75rem 1.25rem",
+                      marginBottom: "1rem",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <span style={{ fontSize: "1.1rem" }}>🏛️</span>
+                      <span style={{ fontSize: "0.85rem", color: "#065f46", fontWeight: "700" }}>
+                        Channel Partner Filter: <strong>{selectedPartner.name}</strong> ({selectedPartner.city}, {selectedPartner.state})
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setSelectedPartner(null)}
+                      style={{
+                        background: "#ffffff",
+                        border: "1px solid #bbf7d0",
+                        color: "#065f46",
+                        borderRadius: "6px",
+                        padding: "0.3rem 0.65rem",
+                        fontSize: "0.75rem",
+                        fontWeight: "700",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✕ Clear Partner Filter
+                    </button>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                  <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-secondary)" }}>
+                    Showing {filteredMatches.length} Eligible Programs
+                  </div>
 
                   {/* Filter chips */}
                   <div style={{ display: "flex", gap: "0.35rem" }}>
@@ -503,20 +556,80 @@ export default function Home() {
                 )}
 
                 {!loading && filteredMatches.map((match, i) => (
-                  <SchemeCard key={match.scheme.id} match={match} index={i} />
+                  <SchemeCard
+                    key={match.scheme.id}
+                    match={match}
+                    index={i}
+                    userState={profile.state}
+                    selectedPartner={selectedPartner}
+                    onFindChannelPartner={(scheme, partner) => {
+                      setSelectedSchemeForPartner(scheme);
+                      if (partner) setSelectedPartner(partner);
+                      setActiveTab("partners");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    onCalculateRepayment={(scheme) => {
+                      setSelectedSchemeForCalculator(scheme);
+                      setActiveTab("calculator");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  />
                 ))}
+
+                {/* AI Match Advisory Notice Banner matching design */}
+                {!loading && filteredMatches.length > 0 && (
+                  <div
+                    style={{
+                      background: "#eff6ff",
+                      border: "1px solid #bfdbfe",
+                      borderRadius: "12px",
+                      padding: "1rem 1.25rem",
+                      marginTop: "1.5rem",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "0.75rem",
+                    }}
+                  >
+                    <div style={{ color: "#2563eb", fontSize: "1.2rem", lineHeight: "1", flexShrink: 0, marginTop: "1px" }}>
+                      ⓘ
+                    </div>
+                    <div style={{ fontSize: "0.82rem", color: "#1e40af", lineHeight: "1.5", fontWeight: "500" }}>
+                      AI match scores indicate how strongly the scheme matches the information provided. They are not loan approval probabilities. Final eligibility, sanction and disbursement are determined by the applicable authority and channel partner.
+                    </div>
+                  </div>
+                )}
               </section>
             </div>
           </div>
         )}
 
         {/* ─── TAB 2: Financial Calculator ─── */}
-        {activeTab === "calculator" && <FinancialCalculator />}
+        {activeTab === "calculator" && (
+          <FinancialCalculator
+            initialScheme={selectedSchemeForCalculator}
+            onClearInitialScheme={() => setSelectedSchemeForCalculator(null)}
+          />
+        )}
 
         {/* ─── TAB 3: Channel Partner Radar ─── */}
-        {activeTab === "partners" && <PartnerLocator />}
+        {activeTab === "partners" && (
+          <PartnerLocator
+            selectedScheme={selectedSchemeForPartner}
+            onClearSchemeFilter={() => setSelectedSchemeForPartner(null)}
+            selectedPartner={selectedPartner}
+            onSelectPartner={(p) => setSelectedPartner(p)}
+            onViewSchemesForPartner={(p) => {
+              setSelectedPartner(p);
+              setActiveTab("recommender");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+        )}
 
       </main>
+
+      {/* Samarthya Sahayak — AI advisory agent (available on every tab) */}
+      <AIAssistantChat profile={profile} />
 
       {/* Institutional Footer */}
       <footer style={{

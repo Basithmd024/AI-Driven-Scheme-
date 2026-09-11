@@ -410,9 +410,9 @@ class ChannelPartnerService:
                     continue
 
             distance = None
-            if filters.latitude is not None and filters.longitude is not None:
+            if filters.user_lat is not None and filters.user_lng is not None:
                 distance = cls.haversine_distance(
-                    filters.latitude, filters.longitude,
+                    filters.user_lat, filters.user_lng,
                     p.latitude, p.longitude
                 )
 
@@ -431,7 +431,7 @@ class ChannelPartnerService:
             ))
 
         # Sort by distance if GPS coordinates provided, otherwise by fund utilization
-        if filters.latitude is not None and filters.longitude is not None:
+        if filters.user_lat is not None and filters.user_lng is not None:
             results.sort(key=lambda x: (x.distance_km if x.distance_km is not None else 99999))
         else:
             results.sort(key=lambda x: x.fund_utilization_rate, reverse=True)

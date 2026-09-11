@@ -56,12 +56,42 @@ class RuleBasedMatchingEngine:
         # 2. Social Category & Demographic Alignment
         is_universal_caste = "ALL INDIA" in scheme_target or "GENERAL" in scheme_target
 
+        # Trade-gated schemes (PM Vishwakarma artisan trades, PM SVANidhi street vendors)
+        # are open to ALL communities — their statutory gate is the trade/vocation, not caste.
+        trade_gated = bool(criteria.get("artisan_trade") or criteria.get("urban_vendor_id"))
+
+        # OR-mandate schemes (e.g., Stand-Up India: SC/ST OR Women of any category)
+        or_mandate = bool(criteria.get("sc_st_or_woman"))
+        if or_mandate and user_category not in scheme_target and user_gender != "female":
+            return {
+                "score": 15.0,
+                "status": "Category Mismatch",
+                "is_disqualified": True,
+                "match_factors": [
+                    "Stand-Up India statutory mandate reserves greenfield loans for SC/ST entrepreneurs and women of any category.",
+                    "Tip: PMEGP and PM MUDRA are open to all categories with NO demographic restriction."
+                ],
+                "channel_guidelines": {
+                    "is_eligible_for_concessional": False,
+                    "recommended_action": "Apply through PMEGP (up to ₹50L with 35% subsidy) or PM MUDRA (up to ₹20L) instead.",
+                    "channel_partners_applicable": ["PSB", "RRB"]
+                }
+            }
+
         if is_universal_caste:
             score += 20.0
             match_factors.append(f"Universal National Scheme: Open to all demographics including {user_category}")
+        elif trade_gated:
+            score += 20.0
+            match_factors.append("Trade-gated National Scheme: Open to all communities practicing the eligible trade/vocation")
         elif user_category in scheme_target:
             score += 25.0
             match_factors.append(f"Direct mandate match for {user_category} beneficiaries")
+        elif or_mandate:
+            # Reached only when the user is not SC/ST but qualifies via the gender mandate
+            # (checked above): e.g., a woman of any category under Stand-Up India.
+            score += 25.0
+            match_factors.append("Qualifies under the statutory SC/ST-or-Women mandate (women of any category eligible)")
         else:
             # Scheme is targeted to another community — not eligible
             target_str = ", ".join([d for d in scheme_target if d != "ALL INDIA"])
