@@ -25,7 +25,16 @@ class AISchemeRecommender:
             factors = eval_result["match_factors"]
             channel_gl = eval_result.get("channel_guidelines", {})
 
-            # Generate plain-language AI explanation
+            # Hard disqualification: profile violates a statutory rule (income ceiling, gender exclusivity, category mismatch)
+            is_disqualified = (
+                eval_result.get("is_disqualified", False) or
+                eval_result["status"] in ("Income Exceeded", "Gender Specific", "Disqualified", "Category Mismatch")
+            )
+
+            # When a person is not eligible by details, DO NOT return / show this scheme
+            if is_disqualified:
+                continue
+
             reasoning = cls._generate_reasoning(user, scheme, factors, eval_result["status"])
             benefits = cls._extract_benefits(scheme)
             docs = cls._generate_document_checklist(user, scheme)
@@ -38,7 +47,9 @@ class AISchemeRecommender:
                     ai_reasoning=reasoning,
                     key_benefits=benefits,
                     required_documents=docs,
-                    channel_guidelines=channel_gl
+                    channel_guidelines=channel_gl,
+                    is_disqualified=False,
+                    disqualification_reason=None
                 )
             )
 

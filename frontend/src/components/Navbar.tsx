@@ -42,27 +42,6 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
       {/* Indian National Tricolor Accent Bar */}
       <div className="national-accent-bar" />
 
-      {/* Credit Metric & Quick Contact Ticker */}
-      <div className="credit-ticker">
-        <div style={{ display: "flex", gap: "1.25rem", alignItems: "center", flexWrap: "wrap" }}>
-          <span>{t("income_ceiling_badge", "Universal & Concessional Credit Schemes")}</span>
-          <span>Coverage: <strong>Up to 90-100%</strong></span>
-          <span>Concessional Rates: <strong>4.0% – 8.0% p.a.</strong></span>
-          <span>Helpline: <a href="tel:14566" title="National Helpline"><strong>14566 (Toll-Free)</strong></a></span>
-          <span>Email: <a href="mailto:support@samarthya-setu.gov.in" title="Official Helpdesk"><strong>support@samarthya-setu.gov.in</strong></a></span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <span style={{
-            display: "inline-block", width: "7px", height: "7px",
-            borderRadius: "50%", background: "var(--status-active)",
-            boxShadow: "0 0 8px var(--status-active)"
-          }} />
-          <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--status-active)", letterSpacing: "0.04em" }}>
-            ALL-INDIA LIVE
-          </span>
-        </div>
-      </div>
-
       {/* Main Bar */}
       <div style={{
         background: "var(--bg-surface)",
@@ -337,9 +316,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange }) => {
           >
             📞 {t("helpline", "National Helpline 14566")}
           </a>
-          <div style={{ fontSize: "0.68rem", color: "var(--text-faint)", textAlign: "center", marginTop: "0.25rem" }}>
-            {t("income_ceiling_badge", "Universal & Concessional Credit Schemes")}
-          </div>
+
         </div>
       </div>
     </header>

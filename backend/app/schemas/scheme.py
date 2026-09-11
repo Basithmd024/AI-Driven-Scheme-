@@ -46,3 +46,5 @@ class SchemeMatchResult(BaseModel):
     key_benefits: List[str]
     required_documents: List[str]
     channel_guidelines: Dict[str, Any]
+    is_disqualified: bool = False  # True when the profile is NOT eligible for this scheme (hidden by default in UI)
+    disqualification_reason: Optional[str] = None

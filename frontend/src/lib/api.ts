@@ -31,6 +31,8 @@ export interface SchemeMatchResult {
   key_benefits: string[];
   required_documents: string[];
   channel_guidelines: Record<string, any>;
+  is_disqualified?: boolean;
+  disqualification_reason?: string;
 }
 
 /* ─── User Profile ─── */
@@ -624,7 +626,16 @@ export async function matchSchemes(profile: EntrepreneurProfile): Promise<Scheme
       body: JSON.stringify(profile),
     });
     if (!res.ok) throw new Error("API call failed");
-    return await res.json();
+    const data: SchemeMatchResult[] = await res.json();
+    return data.filter(
+      (m) =>
+        !m.is_disqualified &&
+        m.eligibility_status !== "Disqualified" &&
+        m.eligibility_status !== "Income Exceeded" &&
+        m.eligibility_status !== "Gender Specific" &&
+        m.eligibility_status !== "Category Mismatch" &&
+        m.eligibility_status !== "Ineligible"
+    );
   } catch (err) {
     // Client-side rule engine matching against India-wide dataset
     const userCategory = (profile.social_category || "GENERAL").toUpperCase();
@@ -633,7 +644,9 @@ export async function matchSchemes(profile: EntrepreneurProfile): Promise<Scheme
     const userCost = Number(profile.estimated_project_cost) || 0;
     const userProject = (profile.project_type || "").toLowerCase();
 
-    return INDIA_WIDE_FALLBACK_SCHEMES.map((scheme) => {
+    const eligibleSchemes: SchemeMatchResult[] = [];
+
+    for (const scheme of INDIA_WIDE_FALLBACK_SCHEMES) {
       let score = 45;
       const benefits: string[] = [];
       const docs: string[] = ["Aadhaar Card", "Bank Account Statement (6 Months)"];
@@ -641,22 +654,49 @@ export async function matchSchemes(profile: EntrepreneurProfile): Promise<Scheme
       const maxIncome = scheme.eligibility_criteria?.max_annual_family_income || 99999999;
       const isUniversalIncome = maxIncome >= 5000000;
 
-      // Income check
+      // 1. Income Check: Ineligible if family income exceeds statutory ceiling
       if (!isUniversalIncome && userIncome > maxIncome) {
-        return {
-          scheme,
-          match_score: 20,
-          eligibility_status: "Income Exceeded",
-          ai_reasoning: `Annual household income (₹${userIncome.toLocaleString()}) exceeds the statutory limit of ₹${maxIncome.toLocaleString()} for this targeted scheme. Consider universal schemes like PMEGP, PM MUDRA, or Stand-Up India.`,
-          key_benefits: ["Subsidized concessional rate applicable under statutory limit"],
-          required_documents: ["Income Certificate", "Caste Certificate"],
-          channel_guidelines: {
-            channel_partners_applicable: ["PSB", "RRB"],
-            is_eligible_for_concessional: false
-          }
-        };
+        continue; // Strictly do not show schemes where applicant is not eligible
       }
 
+      // 2. Gender Exclusivity Check: Ineligible if women-only scheme and applicant is male/other
+      const isWomenExclusive =
+        scheme.eligibility_criteria?.gender_exclusive === "female" ||
+        scheme.category === "women_microfinance" ||
+        (targetDemographics.includes("WOMEN") &&
+          !targetDemographics.includes("ALL INDIA") &&
+          !targetDemographics.includes("GENERAL") &&
+          !targetDemographics.includes("MEN"));
+
+      if (isWomenExclusive && userGender !== "female") {
+        continue; // Strictly do not show schemes where applicant is not eligible
+      }
+
+      // 3. Social Category / Demographic Mandate Check:
+      const isUniversalCategory =
+        targetDemographics.includes("ALL INDIA") ||
+        targetDemographics.includes("GENERAL") ||
+        targetDemographics.includes("ALL");
+
+      if (!isUniversalCategory) {
+        const matchesCategory =
+          (userCategory === "ST" && targetDemographics.includes("ST")) ||
+          (userCategory === "SC" && targetDemographics.includes("SC")) ||
+          (userCategory === "OBC" && targetDemographics.includes("OBC")) ||
+          (userCategory === "MINORITY" && targetDemographics.includes("MINORITY")) ||
+          (userGender === "female" && targetDemographics.includes("WOMEN") && !targetDemographics.includes("ST") && !targetDemographics.includes("SC") && !targetDemographics.includes("OBC"));
+
+        if (!matchesCategory) {
+          continue; // Ineligible by category: Strictly do not show
+        }
+      }
+
+      // 4. Project Scale Fit: Skip micro-credit under 5L when user asks for large projects
+      if (scheme.max_project_cost && scheme.max_project_cost <= 500000 && userCost > scheme.max_project_cost * 2.5) {
+        continue;
+      }
+
+      // Calculate score for eligible schemes
       if (!isUniversalIncome) {
         score += 15;
         benefits.push(`Verified statutory income compliance (≤ ₹${maxIncome.toLocaleString()})`);
@@ -665,40 +705,17 @@ export async function matchSchemes(profile: EntrepreneurProfile): Promise<Scheme
         benefits.push("Universal scheme: No household income ceiling restriction");
       }
 
-      // Social Category Match
-      const isUniversalCategory = targetDemographics.includes("ALL INDIA") || targetDemographics.includes("GENERAL");
       if (isUniversalCategory) {
         score += 20;
         benefits.push(`Open to all categories including ${userCategory}`);
-      } else if (targetDemographics.includes(userCategory)) {
+      } else {
         score += 25;
         benefits.push(`Direct mandate match for ${userCategory} entrepreneurs`);
         docs.push("Category / Caste Certificate");
-      } else {
-        score -= 10;
       }
 
-      // Gender Match
-      if (scheme.eligibility_criteria?.gender_exclusive) {
-        if (userGender === "female") {
-          score += 25;
-          benefits.push("Special women entrepreneur margin money & interest concession applies");
-        } else {
-          return {
-            scheme,
-            match_score: 25,
-            eligibility_status: "Gender Specific",
-            ai_reasoning: "This scheme is exclusively reserved for women entrepreneurs and Self-Help Groups (SHGs).",
-            key_benefits: ["4.0% interest rate concession for women"],
-            required_documents: ["Identity Proof"],
-            channel_guidelines: {
-              channel_partners_applicable: ["SCA", "RRB"],
-              is_eligible_for_concessional: false
-            }
-          };
-        }
-      } else if (userGender === "female" && targetDemographics.includes("WOMEN")) {
-        score += 10;
+      if (userGender === "female" && targetDemographics.includes("WOMEN")) {
+        score += 15;
         benefits.push("Special women concession & priority branch routing");
       }
 
@@ -722,9 +739,7 @@ export async function matchSchemes(profile: EntrepreneurProfile): Promise<Scheme
       }
 
       // Project Cost Feasibility
-      if (userCost > scheme.max_project_cost) {
-        score -= 15;
-      } else {
+      if (userCost <= scheme.max_project_cost) {
         score += 10;
         benefits.push(`Estimated cost (₹${userCost.toLocaleString()}) fully within scheme limit (₹${scheme.max_project_cost.toLocaleString()})`);
       }
@@ -739,12 +754,12 @@ export async function matchSchemes(profile: EntrepreneurProfile): Promise<Scheme
         docs.push("Udyam MSME Registration Certificate");
       }
 
-      const finalScore = Math.min(98, Math.max(20, score));
+      const finalScore = Math.min(98, Math.max(25, score));
 
-      return {
+      eligibleSchemes.push({
         scheme,
         match_score: finalScore,
-        eligibility_status: finalScore >= 80 ? "Highly Eligible" : finalScore >= 60 ? "Eligible" : "Partially Eligible",
+        eligibility_status: finalScore >= 80 ? "Highly Eligible" : "Eligible",
         ai_reasoning: `Based on your profile as an enterprise in ${profile.state || "India"}, this scheme offers ${scheme.concessional_interest_rate}% interest with ${scheme.subsidy_percentage > 0 ? `${scheme.subsidy_percentage}% subsidy` : "concessional channel terms"}.`,
         key_benefits: benefits,
         required_documents: docs,
@@ -752,9 +767,12 @@ export async function matchSchemes(profile: EntrepreneurProfile): Promise<Scheme
           channel_partners_applicable: scheme.eligibility_criteria?.channel_partners || ["PSB", "RRB", "SCA"],
           is_eligible_for_concessional: true,
           official_portal: scheme.application_url
-        }
-      };
-    }).sort((a, b) => b.match_score - a.match_score);
+        },
+        is_disqualified: false
+      });
+    }
+
+    return eligibleSchemes.sort((a, b) => b.match_score - a.match_score);
   }
 }
 

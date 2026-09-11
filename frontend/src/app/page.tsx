@@ -18,95 +18,7 @@ interface Toast {
 export default function Home() {
   const { lang, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>("recommender");
-  const [activeArchetype, setActiveArchetype] = useState<string>("pmegp");
   const [toasts, setToasts] = useState<Toast[]>([]);
-
-  const ARCHETYPES = [
-    {
-      id: "pmegp",
-      nameKey: "arch_pmegp_name",
-      defaultName: "PMEGP Manufacturing",
-      descKey: "arch_pmegp_desc",
-      defaultDesc: "Up to 35% capital subsidy for units up to ₹50L",
-      cost: 2500000,
-      income: 400000,
-      type: "msme_manufacturing",
-      category: "General",
-      gender: "male",
-    },
-    {
-      id: "mudra",
-      nameKey: "arch_mudra_name",
-      defaultName: "PM MUDRA (Kishore/Tarun)",
-      descKey: "arch_mudra_desc",
-      defaultDesc: "Collateral-free business loan up to ₹10L - ₹20L",
-      cost: 1000000,
-      income: 300000,
-      type: "small_business",
-      category: "OBC",
-      gender: "male",
-    },
-    {
-      id: "vishwakarma",
-      nameKey: "arch_vishwakarma_name",
-      defaultName: "PM Vishwakarma Artisan",
-      descKey: "arch_vishwakarma_desc",
-      defaultDesc: "5% loan up to ₹3L + ₹15K toolkit grant for 18 trades",
-      cost: 200000,
-      income: 150000,
-      type: "artisan_crafts",
-      category: "OBC",
-      gender: "male",
-    },
-    {
-      id: "svanidhi",
-      nameKey: "arch_svanidhi_name",
-      defaultName: "PM SVANidhi Street Vendor",
-      descKey: "arch_svanidhi_desc",
-      defaultDesc: "Up to ₹50K working capital with 7% interest subsidy",
-      cost: 50000,
-      income: 120000,
-      type: "micro_retail",
-      category: "General",
-      gender: "male",
-    },
-    {
-      id: "standup",
-      nameKey: "arch_standup_name",
-      defaultName: "Stand-Up India (Women/SC/ST)",
-      descKey: "arch_standup_desc",
-      defaultDesc: "Greenfield enterprise credit from ₹10L to ₹1 Crore",
-      cost: 4500000,
-      income: 550000,
-      type: "greenfield_enterprise",
-      category: "SC",
-      gender: "female",
-    },
-    {
-      id: "mahila",
-      nameKey: "arch_mahila_name",
-      defaultName: "Mahila Samriddhi (Women)",
-      descKey: "arch_mahila_desc",
-      defaultDesc: "Ultra-concessional 4.0% interest for women micro-trades",
-      cost: 140000,
-      income: 180000,
-      type: "women_microfinance",
-      category: "SC",
-      gender: "female",
-    },
-    {
-      id: "green",
-      nameKey: "arch_green_name",
-      defaultName: "Clean Tech & EV Commercial",
-      descKey: "arch_green_desc",
-      defaultDesc: "E-rickshaws, commercial EVs & solar rooftop units",
-      cost: 2000000,
-      income: 350000,
-      type: "green_business",
-      category: "General",
-      gender: "male",
-    },
-  ];
 
   const PROJECT_TYPES = [
     { value: "msme_manufacturing", label: "MSME Manufacturing / Processing Unit (Up to ₹50L)" },
@@ -165,20 +77,6 @@ export default function Home() {
   const [hasSearched, setHasSearched] = useState<boolean>(false);
   const [filterType, setFilterType] = useState<"all" | "high" | "subsidized">("all");
 
-  const handleSelectArchetype = (arch: typeof ARCHETYPES[0]) => {
-    setActiveArchetype(arch.id);
-    const updated: EntrepreneurProfile = {
-      ...profile,
-      project_type: arch.type,
-      estimated_project_cost: arch.cost,
-      annual_family_income: arch.income,
-      social_category: arch.category,
-      gender: arch.gender,
-    };
-    setProfile(updated);
-    executeMatch(updated, `Switched profile to ${t(arch.nameKey, arch.defaultName)}`);
-  };
-
   const executeMatch = async (currentProfile = profile, customSuccessMsg?: string) => {
     if (currentProfile.estimated_project_cost <= 0) {
       addToast("error", "Invalid Project Cost", "Project cost must be greater than ₹0 to match financing programs.");
@@ -220,16 +118,27 @@ export default function Home() {
 
   const fmt = (n: number) => n.toLocaleString("en-IN");
 
-  // Filtering matches based on tabs
-  const filteredMatches = matches.filter((m) => {
-    if (filterType === "high") {
-      return m.match_score >= 80;
-    }
-    if (filterType === "subsidized") {
-      return (m.scheme as any).subsidy_percentage && (m.scheme as any).subsidy_percentage > 0;
-    }
-    return true;
-  });
+  // A scheme is "not eligible" when the rules engine hard-disqualifies the profile
+  const isNotEligible = (m: SchemeMatchResult) =>
+    Boolean((m as any).is_disqualified) ||
+    m.eligibility_status === "Disqualified" ||
+    m.eligibility_status === "Income Exceeded" ||
+    m.eligibility_status === "Gender Specific" ||
+    m.eligibility_status === "Category Mismatch" ||
+    m.eligibility_status === "Ineligible";
+
+  // Ineligible / disqualified schemes are NEVER shown
+  const filteredMatches = matches
+    .filter((m) => !isNotEligible(m))
+    .filter((m) => {
+      if (filterType === "high") {
+        return m.match_score >= 80;
+      }
+      if (filterType === "subsidized") {
+        return (m.scheme as any).subsidy_percentage && (m.scheme as any).subsidy_percentage > 0;
+      }
+      return true;
+    });
 
   return (
     <div style={{
@@ -281,47 +190,6 @@ export default function Home() {
         {/* ─── TAB 1: Scheme Recommender ─── */}
         {activeTab === "recommender" && (
           <div>
-            {/* Quick Profile Selection */}
-            <div style={{ marginBottom: "1.25rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.45rem", flexWrap: "wrap", gap: "0.5rem" }}>
-                <div style={{
-                  fontSize: "0.76rem",
-                  fontWeight: "700",
-                  color: "var(--text-muted)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em"
-                }}>
-                  {t("quick_archetypes", "Quick Select Enterprise Archetypes")}
-                </div>
-                <span className="chip chip-cyan" style={{ fontSize: "0.68rem" }}>
-                  {t("all_demographics_badge", "Open to General, OBC, SC, ST, Minorities & Women")}
-                </span>
-              </div>
-              <div className="archetype-grid" style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: "0.6rem"
-              }}>
-                {ARCHETYPES.map((arch) => (
-                  <button
-                    key={arch.id}
-                    onClick={() => handleSelectArchetype(arch)}
-                    className={`archetype-btn ${activeArchetype === arch.id ? "active" : ""}`}
-                    aria-label={`Select ${t(arch.nameKey, arch.defaultName)} profile`}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: "700", color: "var(--text-primary)", fontSize: "0.84rem" }}>
-                        {t(arch.nameKey, arch.defaultName)}
-                      </div>
-                      <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "2px" }}>
-                        ₹{fmt(arch.cost)} • {t(arch.descKey, arch.defaultDesc)}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Responsive Grid Layout */}
             <div className="hero-grid" style={{
               display: "grid",
@@ -582,6 +450,7 @@ export default function Home() {
                     >
                       {t("filter_subsidized", "Government Subsidized")}
                     </button>
+                    
                   </div>
                 </div>
 
@@ -619,18 +488,15 @@ export default function Home() {
                       No Matching Schemes Under Selected Filter
                     </h4>
                     <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", maxWidth: "460px", margin: "0 auto 1.25rem auto", lineHeight: "1.6" }}>
-                      Try setting the filter to "All Schemes" or choose one of the pre-configured enterprise archetypes above.
+                      Try setting the filter to "All Schemes" or adjusting your project profile parameters.
                     </p>
                     <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
                       <button
-                        onClick={() => {
-                          setFilterType("all");
-                          handleSelectArchetype(ARCHETYPES[0]);
-                        }}
+                        onClick={() => setFilterType("all")}
                         className="btn-apex"
                         style={{ padding: "0.6rem 1.25rem", fontSize: "0.82rem" }}
                       >
-                        Reset to PMEGP Manufacturing Profile
+                        Show All Eligible Schemes
                       </button>
                     </div>
                   </div>

@@ -35,6 +35,7 @@ class RuleBasedMatchingEngine:
             return {
                 "score": 18.0,
                 "status": "Income Exceeded",
+                "is_disqualified": True,
                 "match_factors": [
                     f"Annual family income (₹{user_income:,.0f}) exceeds the statutory ceiling of ₹{max_income:,.0f} for this targeted scheme.",
                     "Tip: You remain 100% eligible for PMEGP, PM MUDRA, Stand-Up India, and CGTMSE which have NO income ceiling."
@@ -62,10 +63,19 @@ class RuleBasedMatchingEngine:
             score += 25.0
             match_factors.append(f"Direct mandate match for {user_category} beneficiaries")
         else:
-            # Scheme is targeted to another community
-            score -= 15.0
+            # Scheme is targeted to another community — not eligible
             target_str = ", ".join([d for d in scheme_target if d != "ALL INDIA"])
-            match_factors.append(f"Primary statutory mandate focuses on {target_str} (Current: {user_category})")
+            return {
+                "score": 15.0,
+                "status": "Category Mismatch",
+                "is_disqualified": True,
+                "match_factors": [f"Targeted statutory mandate focuses on {target_str} (Current: {user_category})."],
+                "channel_guidelines": {
+                    "is_eligible_for_concessional": False,
+                    "recommended_action": "Apply through universal schemes like PMEGP, PM MUDRA, or Stand-Up India instead.",
+                    "channel_partners_applicable": ["PSB", "RRB"]
+                }
+            }
 
         # 3. Gender Exclusivity / Concession
         gender_exclusive = criteria.get("gender_exclusive")
@@ -77,6 +87,7 @@ class RuleBasedMatchingEngine:
                 return {
                     "score": 20.0,
                     "status": "Gender Specific",
+                    "is_disqualified": True,
                     "match_factors": ["This scheme is reserved exclusively for women entrepreneurs and Self-Help Groups (SHGs)."],
                     "channel_guidelines": {
                         "is_eligible_for_concessional": False,
